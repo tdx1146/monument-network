@@ -25,8 +25,12 @@ import json
 import logging
 import os
 import signal
+import threading
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+# ── 默认配置路径 ──────────────────────────────────────────
+_DEFAULT_CONFIG_PATH = "config/monument.json"
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +91,41 @@ class Config:
         # 注册 SIGHUP 热更新
         if auto_reload:
             self._register_reload()
+
+    # ── 单例支持 ──────────────────────────────────────────
+    _instance: Optional['Config'] = None
+    _lock = threading.Lock()
+
+    @classmethod
+    def get_instance(cls) -> 'Config':
+        """
+        获取共享配置实例（单例模式）。
+
+        使用方式：
+            from core.config_loader import Config
+            config = Config.get_instance()
+            rate = config.get("erosion.base_rate")
+
+        Note:
+            - 首次调用时自动以默认路径初始化
+            - 线程安全（双检锁）
+            - 如果在首次调用前已创建 Config 实例，
+              返回已存在的全局默认实例
+        """
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls(_DEFAULT_CONFIG_PATH)
+        return cls._instance
+
+    @classmethod
+    def set_instance(cls, instance: 'Config') -> None:
+        """
+        设置共享实例（用于测试注入）。
+
+        注意：只在测试中使用，生产环境自动初始化。
+        """
+        cls._instance = instance
 
     # ── 公共接口 ──────────────────────────────────────────
 

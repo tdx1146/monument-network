@@ -17,10 +17,9 @@ from typing import Any, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from core.xuanjian_pipe import XuanjianPipe, InsightAnalysis
 
-logger = logging.getLogger(__name__)
+from core.config_loader import Config
 
-# 玄鉴最低置信度阈值（与 config.XUANJIAN_MIN_CONFIDENCE 一致）
-_XUANJIAN_MIN_CONFIDENCE = 0.8
+logger = logging.getLogger(__name__)
 
 
 class IndividualMonument:
@@ -51,6 +50,10 @@ class IndividualMonument:
         }
         # 存储最近一次玄鉴分析结果（如果有）
         self.last_xuanjian_analysis: Optional[dict[str, Any]] = None
+
+        # 配置实例 — 从配置系统读取阈值
+        self._config = Config.get_instance()
+        self._min_confidence = self._config.get("scoring.min_confidence", 0.8)
 
     # ── 写入方法 ──────────────────────────────────────────
 
@@ -139,11 +142,11 @@ class IndividualMonument:
 
         # ── 检查 monument_score（三轴综合得分），而非外部 confidence ──
         monument_score = analysis_dict.get("monument_score", 0.0)
-        if monument_score < _XUANJIAN_MIN_CONFIDENCE:
+        if monument_score < self._min_confidence:
             result = {
                 "error": "候选丰碑置信度不足",
                 "monument_score": monument_score,
-                "threshold": _XUANJIAN_MIN_CONFIDENCE,
+                "threshold": self._min_confidence,
                 "time_binding": analysis_dict.get("time_binding"),
                 "transferability": analysis_dict.get("transferability"),
                 "abstraction_level": analysis_dict.get("abstraction_level"),
@@ -185,7 +188,7 @@ class IndividualMonument:
         (F118-F119 归一化：统一使用 monument_score 而非外部 confidence)
 
         确保管道始终运行三轴评分：
-        - 如果外部 confidence < _XUANJIAN_MIN_CONFIDENCE，
+        - 如果外部 confidence < self._min_confidence，
           仍传入足够值触发三轴判别，然后使用 monument_score 做决策
         - 传入 max(confidence, 0.8) 保证三轴跑满
 
@@ -200,7 +203,7 @@ class IndividualMonument:
 
         # F118: 确保三轴判别始终运行，不受外部 confidence 门限阻塞
         # 传入较高值确保通过 evaluate() 的置信度前置检查
-        pipe_confidence = max(xuanjian_confidence, _XUANJIAN_MIN_CONFIDENCE)
+        pipe_confidence = max(xuanjian_confidence, self._min_confidence)
 
         try:
             result = xuanjian_pipe.evaluate(

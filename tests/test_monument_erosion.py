@@ -219,16 +219,16 @@ class TestCheckThreshold:
     def test_monument_entry_current_status(self):
         cfg = get_config()
         entry = make_entry(0.8)
-        # 0.8 > 0.6 = normal
+        # 0.8 > 0.5 = normal
         assert entry.current_status() == "normal"
         entry.score = 0.5
-        # 0.5 > 0.3 = warning
+        # 0.5 <= 0.5, but > 0.3 = warning
         assert entry.current_status() == "warning"
         entry.score = 0.2
-        # 0.2 > 0.01 = endangered
+        # 0.2 > 0.1 = endangered
         assert entry.current_status() == "endangered"
         entry.score = 0.005
-        # 0.005 <= 0.01 = archived
+        # 0.005 <= 0.05 = archived
         assert entry.current_status() == "archived"
 
 

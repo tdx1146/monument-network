@@ -54,10 +54,10 @@ def minimal_config():
             "dampening_min": 0.5,
         },
         "thresholds": {
-            "normal": 0.6,
+            "normal": 0.5,
             "warning": 0.3,
-            "endangered": 0.01,
-            "archived": 0.0,
+            "endangered": 0.1,
+            "archived": 0.05,
         },
         "rights": {
             "edit_create": 1,
@@ -65,6 +65,20 @@ def minimal_config():
             "suggest": 3,
             "review_per_round": 3,
             "cooldown_days": 10,
+        },
+        "display": {
+            "precision": 4,
+            "max_score": 2.0
+        },
+        "scoring": {
+            "weight_quality": 0.4,
+            "weight_direction": 0.3,
+            "weight_discipline": 0.3,
+            "min_confidence": 0.8
+        },
+        "candidate": {
+            "threshold_count": 5,
+            "threshold_score": 0.6
         },
         "lva": {
             "min_references": 100,
@@ -138,7 +152,7 @@ class TestNestedAccess:
     def test_get_nested_key(self, valid_config_path):
         config = Config(valid_config_path, auto_reload=False)
         assert config.get("erosion.base_rate") == 0.001
-        assert config.get("thresholds.normal") == 0.6
+        assert config.get("thresholds.normal") == 0.5
         assert config.get("rights.edit_create") == 1
 
     def test_get_nested_deep(self, valid_config_path):
@@ -187,7 +201,7 @@ class TestGetSection:
     def test_get_section_nested(self, valid_config_path):
         config = Config(valid_config_path, auto_reload=False)
         thresholds = config.get_section("thresholds")
-        assert thresholds["normal"] == 0.6
+        assert thresholds["normal"] == 0.5
         assert thresholds["warning"] == 0.3
 
     def test_get_section_non_dict_raises(self, valid_config_path):
@@ -285,10 +299,24 @@ class TestDefaultValues:
         assert config.get("reinforce.dampening_min") == 0.5
 
         # thresholds
-        assert config.get("thresholds.normal") == 0.6
+        assert config.get("thresholds.normal") == 0.5
         assert config.get("thresholds.warning") == 0.3
-        assert config.get("thresholds.endangered") == 0.01
-        assert config.get("thresholds.archived") == 0.0
+        assert config.get("thresholds.endangered") == 0.1
+        assert config.get("thresholds.archived") == 0.05
+
+        # display
+        assert config.get("display.precision") == 4
+        assert config.get("display.max_score") == 2.0
+
+        # scoring
+        assert config.get("scoring.weight_quality") == 0.4
+        assert config.get("scoring.weight_direction") == 0.3
+        assert config.get("scoring.weight_discipline") == 0.3
+        assert config.get("scoring.min_confidence") == 0.8
+
+        # candidate
+        assert config.get("candidate.threshold_count") == 5
+        assert config.get("candidate.threshold_score") == 0.6
 
         # rights
         assert config.get("rights.edit_create") == 1

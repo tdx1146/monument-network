@@ -21,10 +21,10 @@
     },
 
     "thresholds": {
-        "normal": 0.6,
+        "normal": 0.5,
         "warning": 0.3,
-        "endangered": 0.01,
-        "archived": 0.0
+        "endangered": 0.1,
+        "archived": 0.05
     },
 
     "rights": {
@@ -33,6 +33,23 @@
         "suggest": 3,
         "review_per_round": 3,
         "cooldown_days": 10
+    },
+
+    "display": {
+        "precision": 4,
+        "max_score": 2.0
+    },
+
+    "scoring": {
+        "weight_quality": 0.4,
+        "weight_direction": 0.3,
+        "weight_discipline": 0.3,
+        "min_confidence": 0.8
+    },
+
+    "candidate": {
+        "threshold_count": 5,
+        "threshold_score": 0.6
     },
 
     "lva": {

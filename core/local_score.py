@@ -89,11 +89,11 @@ class LocalScoreBook:
             float: 加权健康分（按配置精度四舍五入）
         """
         if weights is None:
-            # 权重从配置读取（当前在 config.py 中，后续可迁移到 monument.json）
+            # 权重从配置读取
             weights = {
-                "xuanjian": 0.4,
-                "goal_tree": 0.3,
-                "scheduler": 0.3,
+                "xuanjian": self._config.get("scoring.weight_quality", 0.4),
+                "goal_tree": self._config.get("scoring.weight_direction", 0.3),
+                "scheduler": self._config.get("scoring.weight_discipline", 0.3),
             }
 
         health_score = (
@@ -103,7 +103,7 @@ class LocalScoreBook:
         )
 
         # 精度从配置读取
-        precision = int(self._config.get("erosion.score_max", 4))
+        precision = int(self._config.get("display.precision", 4))
         return round(health_score, precision)
 
     # ─── 本地统计 ────────────────────────────────────────────
