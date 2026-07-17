@@ -5,6 +5,7 @@
 import pytest
 from datetime import datetime, timezone
 
+from core.config_loader import Config
 from core.monument_erosion import (
     MonumentEntry,
     apply_erosion,
@@ -12,7 +13,6 @@ from core.monument_erosion import (
     reinforce_by_action,
     check_threshold,
     simulate_daily_cycle,
-    get_config,
 )
 
 
@@ -40,7 +40,7 @@ class TestApplyErosion:
         assert entry.score == 1.0
 
     def test_one_day_erosion(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         rate = cfg.get("erosion.base_rate")
         entry = make_entry(1.0)
         apply_erosion(entry, 1)
@@ -48,7 +48,7 @@ class TestApplyErosion:
         assert entry.score == pytest.approx(expected, rel=1e-4)
 
     def test_multi_day_compound(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         rate = cfg.get("erosion.base_rate")
         entry = make_entry(1.0)
         apply_erosion(entry, 30)
@@ -62,7 +62,7 @@ class TestApplyErosion:
 
     def test_acceleration_below_threshold(self):
         """低于阈值时磨损加速"""
-        cfg = get_config()
+        cfg = Config.get_instance()
         threshold = cfg.get("erosion.acceleration_threshold")
         rate = cfg.get("erosion.base_rate")
         entry = make_entry(threshold - 0.01)
@@ -74,7 +74,7 @@ class TestApplyErosion:
 
     def test_not_accelerated_above_threshold(self):
         """高于阈值时不加速"""
-        cfg = get_config()
+        cfg = Config.get_instance()
         threshold = cfg.get("erosion.acceleration_threshold")
         rate = cfg.get("erosion.base_rate")
         entry = make_entry(threshold + 0.1)
@@ -92,7 +92,7 @@ class TestReinforce:
         assert entry.score > 0.5
 
     def test_reinforce_caps_at_score_max(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         score_max = cfg.get("erosion.score_max")
         entry = make_entry(score_max - 0.05)
         reinforce(entry, 1.0)
@@ -100,7 +100,7 @@ class TestReinforce:
 
     def test_reinforce_clamps_large_amount(self):
         """单次加固不超过 single_cap"""
-        cfg = get_config()
+        cfg = Config.get_instance()
         single_cap = cfg.get("reinforce.single_cap")
         entry = make_entry(0.2)
         reinforce(entry, 2.0)
@@ -153,7 +153,7 @@ class TestReinforceByAction:
         assert entry.score == 0.5
 
     def test_reinforce_amounts_match_config(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         entry = make_entry(0.1)
         reinforce_by_action(entry, "reference")
         assert entry.score == pytest.approx(
@@ -182,13 +182,13 @@ class TestReinforceByAction:
 class TestCheckThreshold:
 
     def test_normal(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         normal = cfg.get("thresholds.normal")
         assert check_threshold(normal + 0.01) == "normal"
         assert check_threshold(1.0) == "normal"
 
     def test_warning(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         normal = cfg.get("thresholds.normal")
         warning = cfg.get("thresholds.warning")
         assert check_threshold(normal) == "warning"
@@ -196,7 +196,7 @@ class TestCheckThreshold:
         assert check_threshold(warning + 0.01) == "warning"
 
     def test_endangered(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         warning = cfg.get("thresholds.warning")
         endangered = cfg.get("thresholds.endangered")
         assert check_threshold(warning) == "endangered"
@@ -204,20 +204,20 @@ class TestCheckThreshold:
         assert check_threshold(endangered + 0.001) == "endangered"
 
     def test_archived(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         endangered = cfg.get("thresholds.endangered")
         assert check_threshold(endangered) == "archived"
         assert check_threshold(0.0) == "archived"
         assert check_threshold(-0.1) == "archived"
 
     def test_exact_boundaries(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         assert check_threshold(cfg.get("thresholds.normal")) == "warning"
         assert check_threshold(cfg.get("thresholds.warning")) == "endangered"
         assert check_threshold(cfg.get("thresholds.endangered")) == "archived"
 
     def test_monument_entry_current_status(self):
-        cfg = get_config()
+        cfg = Config.get_instance()
         entry = make_entry(0.8)
         # 0.8 > 0.5 = normal
         assert entry.current_status() == "normal"

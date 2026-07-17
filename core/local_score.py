@@ -17,24 +17,8 @@ from typing import Dict, Optional
 
 from core.config_loader import Config
 
+
 logger = logging.getLogger(__name__)
-
-# ── 配置实例（共享 singleton） ─────────────────────────────
-_config: Optional[Config] = None
-
-
-def init_config(config_path: str = "config/monument.json") -> Config:
-    global _config
-    if _config is None:
-        _config = Config(config_path, auto_reload=True)
-    return _config
-
-
-def get_config() -> Config:
-    global _config
-    if _config is None:
-        _config = init_config()
-    return _config
 
 
 # ─── 本地统计聚合器 ─────────────────────────────────────────
@@ -59,7 +43,7 @@ class LocalScoreBook:
             config: Config 实例（依赖注入）
                     不提供时自动从 singleton 读取
         """
-        self._config = config or get_config()
+        self._config = config or Config.get_instance()
         self._stats_cache: Dict[str, Dict] = {}
         logger.info("LocalScoreBook 初始化（简化模式）：所有数值从配置读取")
 

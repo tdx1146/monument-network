@@ -51,6 +51,10 @@ def _register_routes(app):
     from api.monument_routes import register_monument_routes
     register_monument_routes(app)
 
+    # MCP 工具端点
+    from api.mcp_routes import bp as mcp_bp
+    app.register_blueprint(mcp_bp, url_prefix='/mcp')
+
 
 # ─── DHT 节点发现 ──────────────────────────────────────────
 

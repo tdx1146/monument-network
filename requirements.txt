@@ -9,6 +9,9 @@ Flask>=3.0
 # 加密（Ed25519 签名）
 cryptography>=38.0
 
+# 配置验证（JSON Schema）
+jsonschema>=4.0.0
+
 # Kademlia DHT 节点发现
 kademlia>=2.2
 rpcudp>=5.0

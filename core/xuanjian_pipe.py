@@ -25,6 +25,7 @@ Xuanjian Pipe — 玄鉴评分管道 (F118-F119 归一化)
 """
 
 import json
+import os
 import re
 import uuid
 from dataclasses import dataclass, field, asdict
@@ -42,6 +43,7 @@ from config import (
 )
 
 from db.xuanjian_repo import XuanjianRepository
+from event_bus.log_writer import LogWriter
 
 
 # ─── 数据结构 ──────────────────────────────────────────
@@ -105,6 +107,9 @@ class XuanjianPipe:
     def __init__(self) -> None:
         self.repo = XuanjianRepository()
         self.repo.ensure_table()
+        self.log_writer = LogWriter(
+            filepath=os.path.join(os.path.dirname(__file__), '..', 'data', 'event_bus.jsonl')
+        )
 
     # ── 公开接口 ────────────────────────────────────────
 
@@ -179,6 +184,9 @@ class XuanjianPipe:
         # Step 8: 判断是否触发候选
         if monument_score >= XUANJIAN_MIN_CONFIDENCE:
             analysis = self._trigger_candidate(analysis, evaluation_id)
+
+        # Step 9: 写入事件总线
+        self._write_task_complete(analysis)
 
         return analysis
 
@@ -354,7 +362,39 @@ class XuanjianPipe:
                     indent=2,
                 )
 
+        # 写入里程碑事件
+        self._write_milestone(analysis)
+
         return analysis
+
+    # ── 事件总线写入 ────────────────────────────────────
+
+    def _write_task_complete(self, analysis: InsightAnalysis) -> None:
+        """在 evaluate() return 前写入 task_complete 事件"""
+        try:
+            self.log_writer.write({
+                't': datetime.now().isoformat(),
+                'event_type': 'task_complete',
+                'producer': 'xuanjian_pipe',
+                'result': 'OK' if analysis.monument_score >= XUANJIAN_MIN_CONFIDENCE else 'WARN',
+                'detail': f'monument_score={analysis.monument_score:.3f}'
+            })
+        except Exception as e:
+            import sys
+            print(f'[WARN] 事件总线写入失败: {e}', file=sys.stderr)
+
+    def _write_milestone(self, analysis: InsightAnalysis) -> None:
+        """在 _trigger_candidate 末尾写入 milestone 事件"""
+        try:
+            self.log_writer.write({
+                't': datetime.now().isoformat(),
+                'event_type': 'milestone',
+                'producer': 'xuanjian_pipe',
+                'result': 'OK',
+                'detail': f'candidate triggered: confidence={analysis.confidence:.3f}'
+            })
+        except Exception as e:
+            pass
 
     # ── 查询 ────────────────────────────────────────────
 

@@ -20,27 +20,9 @@ from typing import Dict, List, Optional, Tuple
 
 from core.config_loader import Config
 
+from core.config_loader import Config
+
 logger = logging.getLogger(__name__)
-
-# ── 配置实例 ──────────────────────────────────────────────
-# 单例模式：所有模块共享同一个 Config 实例
-_config: Optional[Config] = None
-
-
-def init_config(config_path: str = "config/monument.json") -> Config:
-    """初始化配置（main 入口调用）；允许外部注入"""
-    global _config
-    if _config is None:
-        _config = Config(config_path, auto_reload=True)
-    return _config
-
-
-def get_config() -> Config:
-    """获取配置实例，首次调用时自动初始化"""
-    global _config
-    if _config is None:
-        _config = init_config()
-    return _config
 
 
 # ─── 数据类型 ──────────────────────────────────────────────
@@ -85,7 +67,7 @@ def apply_erosion(entry: MonumentEntry, days: int) -> float:
     if days <= 0:
         return entry.score
 
-    cfg = get_config()
+    cfg = Config.get_instance()
     base_rate = cfg.get("erosion.base_rate")
     accel_threshold = cfg.get("erosion.acceleration_threshold")
     accel_factor = cfg.get("erosion.acceleration_factor")
@@ -116,7 +98,7 @@ def reinforce(entry: MonumentEntry, amount: float) -> float:
     if amount <= 0:
         return entry.score
 
-    cfg = get_config()
+    cfg = Config.get_instance()
     single_cap = cfg.get("reinforce.single_cap")
     score_max = cfg.get("erosion.score_max")
     dampening_start = cfg.get("reinforce.dampening_start")
@@ -142,7 +124,7 @@ def reinforce(entry: MonumentEntry, amount: float) -> float:
 
 def reinforce_by_action(entry: MonumentEntry, action: str) -> float:
     """按操作类型加固，返回新分数"""
-    cfg = get_config()
+    cfg = Config.get_instance()
     amounts = {
         "reference": cfg.get("reinforce.by_reference"),
         "suggestion": cfg.get("reinforce.by_suggestion"),
@@ -175,7 +157,7 @@ def check_threshold(score: float) -> str:
         "endangered"  — thresholds.endangered < score <= thresholds.warning
         "archived"    — score <= thresholds.archived
     """
-    cfg = get_config()
+    cfg = Config.get_instance()
     normal = cfg.get("thresholds.normal")
     warning = cfg.get("thresholds.warning")
     endangered = cfg.get("thresholds.endangered")
