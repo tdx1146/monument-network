@@ -1,0 +1,43 @@
+{
+    "$schema": "./schemas/monument.v1.schema.json",
+    "schema_version": "v1.0.0",
+    "description": "丰碑网络主配置 — 所有业务参数集中管理",
+
+    "erosion": {
+        "base_rate": 0.001,
+        "acceleration_threshold": 0.3,
+        "acceleration_factor": 2.0,
+        "score_max": 2.0
+    },
+
+    "reinforce": {
+        "by_reference": 0.02,
+        "by_suggestion": 0.08,
+        "by_review": 0.15,
+        "by_edit": 0.30,
+        "single_cap": 0.5,
+        "dampening_start": 0.8,
+        "dampening_min": 0.5
+    },
+
+    "thresholds": {
+        "normal": 0.6,
+        "warning": 0.3,
+        "endangered": 0.01,
+        "archived": 0.0
+    },
+
+    "rights": {
+        "edit_create": 1,
+        "edit_amend": 3,
+        "suggest": 3,
+        "review_per_round": 3,
+        "cooldown_days": 10
+    },
+
+    "lva": {
+        "min_references": 100,
+        "min_score": 0.8,
+        "min_signatures": 3
+    }
+}
