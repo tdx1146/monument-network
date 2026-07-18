@@ -75,10 +75,17 @@ class IndividualMonument:
         """
         写入候选丰碑（原始接口，无玄鉴评分）。
 
+        验证正文长度（至少 200 字），防止短文本/关键词堆砌混入候选。
+
         返回该条目的索引 ID。
         保持向后兼容——所有现有调用者无需修改。
         """
         self._assert_not_frozen()
+
+        # 验证正文长度
+        if len(content) < 200:
+            raise ValueError('正文太短（至少200字）')
+
         entry = {
             "id": len(self.data["monuments"]["candidates"]),
             "type": "candidate",
@@ -227,6 +234,10 @@ class IndividualMonument:
         xuanjian_score: Optional[float],
     ) -> int:
         """内部方法：追加候选条目，返回索引 ID。"""
+        # 验证正文长度
+        if len(content) < 200:
+            raise ValueError('正文太短（至少200字）')
+
         entry: dict[str, Any] = {
             "id": len(self.data["monuments"]["candidates"]),
             "type": "candidate",

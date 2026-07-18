@@ -227,10 +227,10 @@ class XuanjianPipe:
 
         # 默认 0.7（中等偏高时间绑定）
         time_binding = 0.7
-        # 每命中一个"低绑定"关键词，降低 0.12，最低 0.1
-        time_binding = max(0.1, time_binding - low_hits * 0.12)
-        # 每命中一个"高绑定"关键词，增加 0.15，最高 1.0
-        time_binding = min(1.0, time_binding + high_hits * 0.15)
+        # 每命中一个"低绑定"关键词，降低 0.04，最低 0.1
+        time_binding = max(0.1, time_binding - low_hits * 0.04)
+        # 每命中一个"高绑定"关键词，增加 0.05，最高 1.0
+        time_binding = min(1.0, time_binding + high_hits * 0.05)
 
         # --- 轴 2：可迁移性 ---
         transfer_keywords = [
@@ -243,8 +243,8 @@ class XuanjianPipe:
 
         # 默认 0.3（中等偏低）
         transferability = 0.3
-        # 每命中一个可迁移关键词，增加 0.17，最高 1.0
-        transferability = min(1.0, transferability + transfer_hits * 0.17)
+        # 每命中一个可迁移关键词，增加 0.08，最高 1.0
+        transferability = min(1.0, transferability + transfer_hits * 0.08)
 
         # --- 轴 3：抽象层级 ---
         abstract_keywords = [
@@ -257,8 +257,22 @@ class XuanjianPipe:
 
         # 默认 0.3（中等偏低）
         abstraction_level = 0.3
-        # 每命中一个抽象关键词，增加 0.14，最高 1.0
-        abstraction_level = min(1.0, abstraction_level + abstract_hits * 0.14)
+        # 每命中一个抽象关键词，增加 0.08，最高 1.0
+        abstraction_level = min(1.0, abstraction_level + abstract_hits * 0.08)
+
+        # ── 内容质量检查 ──
+        content_length = len(text)
+        if content_length < 200:
+            # 正文太短，降权
+            transferability *= 0.5
+            abstraction_level *= 0.5
+
+        # ── 去重检查 ──
+        # 对中文文本，用字符级去重（split 无法正确分词）
+        unique_chars = set(text)
+        if len(unique_chars) < 20:
+            # 去重字符太少，可能是关键词堆砌或重复短句
+            transferability *= 0.7
 
         return {
             "time_binding": round(time_binding, 4),

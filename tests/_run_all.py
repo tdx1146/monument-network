@@ -39,7 +39,7 @@ check("write_draft insights==1", m.data["life_record"]["total_insights"] == 1)
 check("write_draft content",
       m.data["monuments"]["drafts"][0]["content"] == "草稿内容")
 
-idx2 = m.write_candidate("候选内容", {"score": 0.9})
+idx2 = m.write_candidate("这是一个足够长的候选内容，用于测试丰碑系统的写入功能。这段文本需要超过两百个字才能通过验证，因此我需要在这里填充足够的内容来确保测试通过。丰碑系统是一个记录AI洞察和认知积累的系统，它的核心思想是通过长期的笔记和思考来构建个人的知识体系。在信息爆炸的时代，能够有效地管理自己的知识资产变得越来越重要。一个好的笔记系统不仅要能记录信息，还要能帮助我们发现信息之间的联系，激发新的想法和洞见。通过持续的积累和反思，我们可以逐步建立起自己的知识体系，从而在工作和学习中更加高效。同时，知识管理也是一个不断演进的过程，我们需要根据实际需要不断调整和优化自己的方法。", {"score": 0.9})
 check("write_candidate idx=0", idx2 == 0)
 check("write_candidate insights==2", m.data["life_record"]["total_insights"] == 2)
 
@@ -84,7 +84,7 @@ except ValueError:
 # roundtrip
 m3 = IndividualMonument("roundtrip")
 m3.write_draft("d1")
-m3.write_candidate("c1")
+m3.write_candidate("这是一个足够长的候选内容，用于测试丰碑系统的写入功能。这段文本需要超过两百个字才能通过验证，因此我需要在这里填充足够的内容来确保测试通过。丰碑系统是一个记录AI洞察和认知积累的系统，它的核心思想是通过长期的笔记和思考来构建个人的知识体系。在信息爆炸的时代，能够有效地管理自己的知识资产变得越来越重要。一个好的笔记系统不仅要能记录信息，还要能帮助我们发现信息之间的联系，激发新的想法和洞见。通过持续的积累和反思，我们可以逐步建立起自己的知识体系，从而在工作和学习中更加高效。同时，知识管理也是一个不断演进的过程，我们需要根据实际需要不断调整和优化自己的方法。")
 d = m3.to_dict()
 m4 = IndividualMonument.from_dict(d)
 check("roundtrip ai_id", m4.data["identity"]["ai_id"] == "roundtrip")
@@ -126,7 +126,7 @@ check("get_by_ai_id draft preserved",
 none_loaded = repo.get_by_ai_id("nobody")
 check("get_by_ai_id nonexistent returns None", none_loaded is None)
 
-m5.write_candidate("another insight")
+m5.write_candidate("这是一个足够长的候选内容，用于测试丰碑系统的写入功能。这段文本需要超过两百个字才能通过验证，因此我需要在这里填充足够的内容来确保测试通过。丰碑系统是一个记录AI洞察和认知积累的系统，它的核心思想是通过长期的笔记和思考来构建个人的知识体系。在信息爆炸的时代，能够有效地管理自己的知识资产变得越来越重要。一个好的笔记系统不仅要能记录信息，还要能帮助我们发现信息之间的联系，激发新的想法和洞见。通过持续的积累和反思，我们可以逐步建立起自己的知识体系，从而在工作和学习中更加高效。同时，知识管理也是一个不断演进的过程，我们需要根据实际需要不断调整和优化自己的方法。")
 ok = repo.update(m5)
 check("update returns True", ok is True)
 reloaded = repo.get_by_ai_id("ai-persist")

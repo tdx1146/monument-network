@@ -115,6 +115,12 @@ methodology_text = (
     "可迁移性高的通用架构模式始终适用于类似场景。"
     "抽象模型能跨领域复用，底层逻辑一致。"
     "这个原则的本质是复用性，可通过抽象范式推广。"
+    "在软件工程中，我们发现抽象架构模式能够显著提高系统的可维护性和可扩展性。"
+    "通过将核心逻辑与具体实现解耦，我们可以更容易地替换底层技术栈而不影响上层业务逻辑。"
+    "这种方法论不仅适用于软件开发，在组织结构设计、业务流程优化等领域同样有效。"
+    "核心思想是通过识别和提取通用的规律和模式，将它们抽象为可复用的组件或框架。"
+    "这样当面对新的问题时，我们不需要从零开始，而是可以基于已有的抽象模式快速构建解决方案。"
+    "持续的实践和反思会帮助我们不断完善这些抽象模型，使其更加通用和健壮。"
 )
 axes = pipe.compute_three_axis(methodology_text)
 check("methodology: time_binding <= 0.5",
@@ -221,13 +227,21 @@ print("\n=== Full Evaluation Flow ===")
 _clean_xuanjian_table()
 
 # --- 4a: 高置信度方法论文本 → 触发候选 ---
+methodology_full = (
+    "可迁移性高的通用架构模式始终适用于类似场景。"
+    "抽象模型能跨领域复用，底层逻辑一致。"
+    "这个原则的本质是复用性，可通过抽象范式推广。"
+    "在软件工程中，我们发现抽象架构模式能够显著提高系统的可维护性和可扩展性。"
+    "通过将核心逻辑与具体实现解耦，我们可以更容易地替换底层技术栈而不影响上层业务逻辑。"
+    "这种方法论不仅适用于软件开发，在组织结构设计、业务流程优化等领域同样有效。"
+    "核心思想是通过识别和提取通用的规律和模式，将它们抽象为可复用的组件或框架。"
+    "这样当面对新的问题时，我们不需要从零开始，而是可以基于已有的抽象模式快速构建解决方案。"
+    "持续的实践和反思会帮助我们不断完善这些抽象模型，使其更加通用和健壮。"
+)
+
 result = pipe.evaluate(
     ai_id="test-ai-3",
-    text=(
-        "采用抽象架构模式可跨领域复用，"
-        "底层原则适用于各种场景。"
-        "模型的核心思想是可迁移，通用性强的概念能持续使用。"
-    ),
+    text=methodology_full,
     confidence=0.85,
 )
 check("eval: returns InsightAnalysis", isinstance(result, InsightAnalysis))
@@ -278,11 +292,7 @@ check("eval high conf low method: low monument_score",
 # --- 4d: 高置信度 + 三轴好 → 候选 ---
 result4 = pipe.evaluate(
     ai_id="test-ai-6",
-    text=(
-        "通用模型的复用原则始终跨领域适用，"
-        "抽象架构模式处处可复用。"
-        "复用性强的底层逻辑跨系统推广，这个核心机制遵循既定规律。"
-    ),
+    text=methodology_full,
     confidence=0.95,
 )
 check("eval high both: is_candidate", result4.is_candidate is True)
@@ -301,11 +311,11 @@ print("\n=== Pattern Matching ===")
 for i in range(5):
     pipe.evaluate(
         ai_id="pattern-test-ai",
-        text="这个抽象模型的原则通用性高，可迁移到类似场景中。",
+        text=methodology_full,
         confidence=0.9,
     )
 
-pattern_count = repo.count_by_pattern("这个抽象模型的原则通用性高_可迁移到类似场景中")
+pattern_count = repo.count_by_pattern("可迁移性高的通用架构模式始终适用于类似场景_抽象模型能跨领域复用_底层逻辑一致_这个原则的本质是复用性_可通过抽象范式推广")
 check("pattern: count >= 5", pattern_count >= 5,
       f"got {pattern_count}")
 
@@ -328,7 +338,7 @@ check("empty text: monument_score computed, likely low",
 # 置信度恰好等于阈值
 exact_result = pipe.evaluate(
     ai_id="exact-test",
-    text="通用模型的核心架构原则可跨领域复用。",
+    text=methodology_full,
     confidence=0.8,
 )
 check("exact threshold: confidence preserved",
