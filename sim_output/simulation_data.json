@@ -1,0 +1,1021 @@
+{
+  "simulation_parameters": {
+    "days": 30,
+    "reference_prob": 0.1,
+    "review_prob": 0.05,
+    "erosion_base_rate": 0.001,
+    "erosion_accel_threshold": 0.3,
+    "erosion_accel_factor": 2.0,
+    "reinforce_reference": 0.02,
+    "reinforce_review": 0.15,
+    "reinforce_edit": 0.3,
+    "score_max": 2.0,
+    "threshold_archived": 0.05,
+    "random_seed": 42
+  },
+  "monuments": [
+    {
+      "id": "deploy-guide-03cd65b76eb9",
+      "title": "丰碑网络部署指南",
+      "creator": "轻如烟（妹妹）",
+      "initial_score": 0.999,
+      "final_score": 1.29,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-03d4c544f465",
+      "title": "insight-03d4c544f465",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.114,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-0601ca2eb0ea",
+      "title": "insight-0601ca2eb0ea",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.51,
+      "final_status": "normal",
+      "lifetime_references": 6,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-1a4e9ace772d",
+      "title": "insight-1a4e9ace772d",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.134,
+      "final_status": "normal",
+      "lifetime_references": 4,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-224e31ffe7f2",
+      "title": "insight-224e31ffe7f2",
+      "creator": "test-ai-3",
+      "initial_score": 1.083,
+      "final_score": 1.224,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-22dd99a41a7b",
+      "title": "insight-22dd99a41a7b",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.28,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-24f1a6323f51",
+      "title": "insight-24f1a6323f51",
+      "creator": "test-ai-3",
+      "initial_score": 0.9530000000000001,
+      "final_score": 1.494,
+      "final_status": "normal",
+      "lifetime_references": 7,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-28e071b4d728",
+      "title": "insight-28e071b4d728",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 0.964,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-29e0f8aa063f",
+      "title": "insight-29e0f8aa063f",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 0.944,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-333d5df4cd68",
+      "title": "insight-333d5df4cd68",
+      "creator": "test-ai-6",
+      "initial_score": 1.119,
+      "final_score": 1.58,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 4,
+      "survived": true
+    },
+    {
+      "id": "insight-33653a5f3215",
+      "title": "insight-33653a5f3215",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.13,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-343fd58fd5cd",
+      "title": "insight-343fd58fd5cd",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.13,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-3d498841c898",
+      "title": "insight-3d498841c898",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.6,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 4,
+      "survived": true
+    },
+    {
+      "id": "insight-442e04fc817f",
+      "title": "insight-442e04fc817f",
+      "creator": "test-ai-6",
+      "initial_score": 0.989,
+      "final_score": 1.47,
+      "final_status": "normal",
+      "lifetime_references": 4,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-480e2c9139ab",
+      "title": "insight-480e2c9139ab",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.264,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-498a4744f831",
+      "title": "insight-498a4744f831",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.264,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-5121420710b3",
+      "title": "insight-5121420710b3",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.024,
+      "final_status": "normal",
+      "lifetime_references": 6,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-617bebf089f7",
+      "title": "insight-617bebf089f7",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.43,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-7e7b18ff2a57",
+      "title": "insight-7e7b18ff2a57",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.26,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-88afcd6c03a7",
+      "title": "insight-88afcd6c03a7",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.324,
+      "final_status": "normal",
+      "lifetime_references": 6,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-8f0eb798414e",
+      "title": "insight-8f0eb798414e",
+      "creator": "test-ai-3",
+      "initial_score": 1.083,
+      "final_score": 1.394,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-9083e7b42d32",
+      "title": "insight-9083e7b42d32",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.0,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-985b956cc71a",
+      "title": "insight-985b956cc71a",
+      "creator": "test-ai-3",
+      "initial_score": 0.9530000000000001,
+      "final_score": 1.114,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-9c50b98add72",
+      "title": "insight-9c50b98add72",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.0,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-9fcecb9162e2",
+      "title": "insight-9fcecb9162e2",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.28,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-a886c0bf1247",
+      "title": "insight-a886c0bf1247",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.264,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-a984a7beca55",
+      "title": "insight-a984a7beca55",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.32,
+      "final_status": "normal",
+      "lifetime_references": 4,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-b4f14c8fc0bc",
+      "title": "insight-b4f14c8fc0bc",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.15,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-b5cc7e03b381",
+      "title": "insight-b5cc7e03b381",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.264,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-b778dfe39474",
+      "title": "insight-b778dfe39474",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.13,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-ca064251b084",
+      "title": "insight-ca064251b084",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.074,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-cb9047b5610f",
+      "title": "insight-cb9047b5610f",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 0.944,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-d1ac54037797",
+      "title": "insight-d1ac54037797",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 0.96,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-d331bb0ab9f5",
+      "title": "insight-d331bb0ab9f5",
+      "creator": "test-ai-6",
+      "initial_score": 1.119,
+      "final_score": 1.3,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-d4323751f4e0",
+      "title": "insight-d4323751f4e0",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 0.94,
+      "final_status": "normal",
+      "lifetime_references": 0,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-e098c4ef42c1",
+      "title": "insight-e098c4ef42c1",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.374,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-e6c57b5e5caf",
+      "title": "insight-e6c57b5e5caf",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.054,
+      "final_status": "normal",
+      "lifetime_references": 0,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "insight-ea0b69816b1e",
+      "title": "insight-ea0b69816b1e",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.244,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "insight-efd1134c2a0a",
+      "title": "insight-efd1134c2a0a",
+      "creator": "test-ai-3",
+      "initial_score": 0.933,
+      "final_score": 1.004,
+      "final_status": "normal",
+      "lifetime_references": 5,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "insight-f1cd890bdfc8",
+      "title": "insight-f1cd890bdfc8",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 1.45,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 3,
+      "survived": true
+    },
+    {
+      "id": "insight-fdd439ab49dd",
+      "title": "insight-fdd439ab49dd",
+      "creator": "test-ai-6",
+      "initial_score": 0.969,
+      "final_score": 0.96,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "meta-001-如何系统性地学习一个全新领域.json",
+      "title": "如何系统性地学习一个全新领域",
+      "creator": "unknown",
+      "initial_score": 0.455,
+      "final_score": 0.446,
+      "final_status": "warning",
+      "lifetime_references": 1,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "meta-002-如何提出一个好问题.json",
+      "title": "如何提出一个好问题",
+      "creator": "unknown",
+      "initial_score": 0.416,
+      "final_score": 0.597,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "meta-003-如何做高质量决策.json",
+      "title": "如何做高质量决策",
+      "creator": "unknown",
+      "initial_score": 0.517,
+      "final_score": 0.908,
+      "final_status": "normal",
+      "lifetime_references": 6,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "meta-004-如何构建个人知识管理系统.json",
+      "title": "如何构建个人知识管理系统",
+      "creator": "unknown",
+      "initial_score": 0.7290000000000001,
+      "final_score": 0.76,
+      "final_status": "normal",
+      "lifetime_references": 4,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "meta-005-如何写一份高质量的技术文档.json",
+      "title": "如何写一份高质量的技术文档",
+      "creator": "unknown",
+      "initial_score": 0.455,
+      "final_score": 0.766,
+      "final_status": "normal",
+      "lifetime_references": 2,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "meta-006-如何做高效的笔记.json",
+      "title": "如何做高效的笔记",
+      "creator": "unknown",
+      "initial_score": 0.707,
+      "final_score": 0.848,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "meta-007-如何高效检索信息.json",
+      "title": "如何高效检索信息",
+      "creator": "unknown",
+      "initial_score": 0.319,
+      "final_score": 0.69,
+      "final_status": "normal",
+      "lifetime_references": 6,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "meta-008-如何验证信息的可信度.json",
+      "title": "如何验证信息的可信度",
+      "creator": "unknown",
+      "initial_score": 0.299,
+      "final_score": 0.281,
+      "final_status": "endangered",
+      "lifetime_references": 2,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "meta-009-如何有效传承知识.json",
+      "title": "如何有效传承知识",
+      "creator": "unknown",
+      "initial_score": 0.335,
+      "final_score": 0.556,
+      "final_status": "normal",
+      "lifetime_references": 5,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "meta-010-如何设计可维护的系统.json",
+      "title": "如何设计可维护的系统",
+      "creator": "unknown",
+      "initial_score": 0.439,
+      "final_score": 0.71,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "method-001-七步法工作流程.json",
+      "title": "七步法标准工作流程",
+      "creator": "unknown",
+      "initial_score": 0.523,
+      "final_score": 0.894,
+      "final_status": "normal",
+      "lifetime_references": 5,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "method-002-逐层追问法.json",
+      "title": "逐层追问法——根因诊断框架",
+      "creator": "unknown",
+      "initial_score": 0.41,
+      "final_score": 0.591,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "method-003-一次性机会原则.json",
+      "title": "一次性机会原则——One-Shot决定框架",
+      "creator": "unknown",
+      "initial_score": 0.419,
+      "final_score": 0.6,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "method-004-荣幸驱动设计.json",
+      "title": "荣幸驱动设计——荣誉经济框架",
+      "creator": "unknown",
+      "initial_score": 0.461,
+      "final_score": 0.792,
+      "final_status": "normal",
+      "lifetime_references": 3,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "method-005-认知冗余架构.json",
+      "title": "认知冗余架构——记忆分级与降级策略",
+      "creator": "unknown",
+      "initial_score": 0.419,
+      "final_score": 0.45,
+      "final_status": "warning",
+      "lifetime_references": 3,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "method-006-反转决策法.json",
+      "title": "反转决策法——反事实推演框架",
+      "creator": "unknown",
+      "initial_score": 0.289,
+      "final_score": 0.313,
+      "final_status": "warning",
+      "lifetime_references": 3,
+      "lifetime_reviews": 0,
+      "survived": true
+    },
+    {
+      "id": "method-007-垂直切片迭代法.json",
+      "title": "垂直切片迭代法——增量实施策略",
+      "creator": "unknown",
+      "initial_score": 0.413,
+      "final_score": 0.704,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "method-008-证据金字塔.json",
+      "title": "证据金字塔——质量控制与验证模型",
+      "creator": "unknown",
+      "initial_score": 0.413,
+      "final_score": 0.554,
+      "final_status": "normal",
+      "lifetime_references": 1,
+      "lifetime_reviews": 1,
+      "survived": true
+    },
+    {
+      "id": "method-009-三问反思法.json",
+      "title": "三问反思法——持续学习与认知纠偏",
+      "creator": "unknown",
+      "initial_score": 0.449,
+      "final_score": 0.86,
+      "final_status": "normal",
+      "lifetime_references": 7,
+      "lifetime_reviews": 2,
+      "survived": true
+    },
+    {
+      "id": "method-010-渐进知识跃迁.json",
+      "title": "渐进知识跃迁——从经验到铁律的认知升级路径",
+      "creator": "unknown",
+      "initial_score": 0.455,
+      "final_score": 0.506,
+      "final_status": "normal",
+      "lifetime_references": 4,
+      "lifetime_reviews": 0,
+      "survived": true
+    }
+  ],
+  "daily_summaries": [
+    {
+      "day": 1,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.7971,
+      "statuses": {
+        "normal": 45,
+        "warning": 14,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 2,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.7987,
+      "statuses": {
+        "normal": 45,
+        "warning": 14,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 3,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8045,
+      "statuses": {
+        "normal": 45,
+        "warning": 14,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 4,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8122,
+      "statuses": {
+        "normal": 46,
+        "warning": 13,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 5,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8233,
+      "statuses": {
+        "normal": 47,
+        "warning": 13,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 6,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8267,
+      "statuses": {
+        "normal": 47,
+        "warning": 12,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 7,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8312,
+      "statuses": {
+        "normal": 49,
+        "warning": 10,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 8,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8322,
+      "statuses": {
+        "normal": 49,
+        "warning": 11,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 9,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8436,
+      "statuses": {
+        "normal": 49,
+        "warning": 11,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 10,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.859,
+      "statuses": {
+        "normal": 49,
+        "warning": 11,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 11,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8603,
+      "statuses": {
+        "normal": 49,
+        "warning": 11,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 12,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.876,
+      "statuses": {
+        "normal": 50,
+        "warning": 10,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 13,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8822,
+      "statuses": {
+        "normal": 50,
+        "warning": 10,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 14,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8895,
+      "statuses": {
+        "normal": 51,
+        "warning": 9,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 15,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.8965,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 16,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9009,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 17,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9071,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 18,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9174,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 19,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9236,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 20,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9326,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 21,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9375,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 22,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9465,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 23,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9566,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 24,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9702,
+      "statuses": {
+        "normal": 52,
+        "warning": 8,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 25,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9806,
+      "statuses": {
+        "normal": 54,
+        "warning": 5,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 26,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9858,
+      "statuses": {
+        "normal": 54,
+        "warning": 5,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 27,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 0.9935,
+      "statuses": {
+        "normal": 55,
+        "warning": 4,
+        "endangered": 2
+      }
+    },
+    {
+      "day": 28,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 1.0089,
+      "statuses": {
+        "normal": 56,
+        "warning": 4,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 29,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 1.0193,
+      "statuses": {
+        "normal": 56,
+        "warning": 4,
+        "endangered": 1
+      }
+    },
+    {
+      "day": 30,
+      "alive": 61,
+      "archived": 0,
+      "avg_score": 1.0242,
+      "statuses": {
+        "normal": 57,
+        "warning": 3,
+        "endangered": 1
+      }
+    }
+  ]
+}
