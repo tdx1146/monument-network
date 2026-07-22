@@ -90,8 +90,8 @@ def _dht_discover_peers():
     if not _dht_node_instance or not _dht_loop:
         return {}
     async def _discover():
-        await _dht_node_instance.discover_peers()
-        return await _dht_node_instance.list_peers()
+        peers = await _dht_node_instance.find_peers()
+        return {p["peer_id"]: p["addrs"] for p in peers}
     try:
         future = asyncio.run_coroutine_threadsafe(
             _discover(), _dht_loop
