@@ -7,8 +7,12 @@ import os
 from pathlib import Path
 
 # ─── 基础路径 ───────────────────────────────────────────
-# 项目根目录
-BASE_DIR = r"H:\丰碑网络"
+# 项目根目录：自动检测（支持环境变量覆盖）
+# 使用方式：MONUMENT_BASE_DIR=/path/to/root 或自动从 config.py 位置推算
+BASE_DIR = Path(os.environ.get(
+    "MONUMENT_BASE_DIR",
+    Path(__file__).resolve().parent.parent,  # config.py 在 code/ 下，父目录是项目根
+))
 
 # 代码目录
 CODE_DIR = Path(BASE_DIR) / "code"
