@@ -31,8 +31,11 @@ if _CODE_DIR not in sys.path:
     sys.path.insert(0, _CODE_DIR)
 
 import logging
-from flask import Flask, jsonify
-from config import API_HOST, API_PORT, LOG_DIR, DHT_PORT, DHT_BOOTSTRAP_NODES, DATA_DIR
+from flask import Flask, jsonify, request
+from config import (
+    API_HOST, API_PORT, LOG_DIR, DHT_PORT, DHT_BOOTSTRAP_NODES, DATA_DIR,
+    API_KEY, API_TRUSTED_PEERS, API_PUBLIC_PATHS,
+)
 
 # DHT 状态持久化目录
 DHT_STORAGE_DIR = DATA_DIR / "dht"
@@ -46,6 +49,43 @@ _dht_peer_id = None
 _dht_loop = None
 
 # 延迟导入，避免循环依赖
+
+def _setup_auth_middleware(app):
+    """配置 API Key 认证中间件。
+
+    - 未配置 API_KEY 时为开发模式，不启用认证
+    - /health, /health/simple, /info 免认证
+    - 信任的 peer_id 通过 X-Monument-Peer 头免认证
+    - 其他请求需要 X-Monument-Key 头匹配 API_KEY
+    """
+    @app.before_request
+    def _check_api_auth():
+        # 开发模式：未配置 API_KEY 则跳过
+        if not API_KEY:
+            return None
+
+        path = request.path.rstrip("/")
+        # 公开端点免认证
+        if path in API_PUBLIC_PATHS:
+            return None
+
+        # 信任的 peer_id 免认证
+        peer_id = request.headers.get("X-Monument-Peer", "")
+        if peer_id and peer_id in API_TRUSTED_PEERS:
+            return None
+
+        # 检查 API Key
+        key = request.headers.get("X-Monument-Key", "")
+        if key == API_KEY:
+            return None
+
+        # 认证失败
+        logger.warning("API 认证失败: path=%s remote=%s", path, request.remote_addr)
+        return jsonify({
+            "status": "error",
+            "message": "unauthorized: missing or invalid API key"
+        }), 401
+
 
 def _register_routes(app):
     from api.monument_routes import register_monument_routes
@@ -159,6 +199,7 @@ def create_app() -> Flask:
     app.logger.setLevel(logging.INFO)
 
     # ── 路由注册 ──────────────────────────────────────────
+    _setup_auth_middleware(app)
     _register_routes(app)
 
     @app.route("/health")

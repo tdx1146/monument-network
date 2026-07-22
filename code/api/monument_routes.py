@@ -149,7 +149,17 @@ def register_monument_routes(app: Flask):
             }), 400
 
         # ── 签名验证 ──
-        if "signature" in monument_payload and monument_payload.get("from_peer"):
+        from config import API_REQUIRE_SIGNATURE
+
+        has_signature = "signature" in monument_payload and monument_payload.get("from_peer")
+
+        if API_REQUIRE_SIGNATURE and not has_signature:
+            return jsonify({
+                "status": "error",
+                "message": "签名必填：生产模式下 /monument/sync 要求 signature 和 from_peer 字段"
+            }), 401
+
+        if has_signature:
             is_valid, err_msg = verify_monument_message(monument_payload)
             if not is_valid:
                 logger.warning("签名验证失败: %s", err_msg)

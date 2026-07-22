@@ -98,7 +98,16 @@ class RelayServer:
                 body = json.dumps(data, ensure_ascii=False).encode()
                 self.send_response(status)
                 self.send_header("Content-Type", "application/json")
-                self.send_header("Access-Control-Allow-Origin", "*")
+                # CORS：限制来源（空列表则允许所有）
+                from config import RELAY_CORS_ORIGINS
+                if RELAY_CORS_ORIGINS:
+                    origin = self.headers.get("Origin", "")
+                    if origin in RELAY_CORS_ORIGINS:
+                        self.send_header("Access-Control-Allow-Origin", origin)
+                    else:
+                        self.send_header("Access-Control-Allow-Origin", "null")
+                else:
+                    self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -161,7 +170,15 @@ class RelayServer:
                 path = self.path.rstrip("/")
                 content_len = int(self.headers.get("Content-Length", 0))
                 body = self.rfile.read(content_len) if content_len > 0 else b"{}"
-                
+
+                # ── API Key 认证（写操作）──
+                from config import RELAY_API_KEY
+                if RELAY_API_KEY:
+                    key = self.headers.get("X-Relay-Key", "")
+                    if key != RELAY_API_KEY:
+                        self._send_json({"error": "unauthorized: invalid relay key"}, 401)
+                        return
+
                 try:
                     data = json.loads(body.decode())
                 except json.JSONDecodeError:

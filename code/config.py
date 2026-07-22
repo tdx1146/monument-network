@@ -81,6 +81,28 @@ DHT_BOOTSTRAP_NODES: list = []  # [(ip, port), ...]
 # ─── 哈希算法 ───────────────────────────────────────────
 HASH_ALGORITHM = "sha256"
 
+# ─── API 安全 ──────────────────────────────────────────
+# API Key 认证（空字符串 = 开发模式，不启用认证）
+API_KEY = os.environ.get("MONUMENT_API_KEY", "")
+# 信任的 peer_id 列表（逗号分隔，这些 peer 可免 API Key）
+API_TRUSTED_PEERS = [
+    p.strip() for p in os.environ.get("MONUMENT_TRUSTED_PEERS", "").split(",")
+    if p.strip()
+]
+# 免认证路径（健康检查等）
+API_PUBLIC_PATHS = {"/health", "/health/simple", "/info"}
+# 签名验证是否强制（True = /monument/sync 必须带签名）
+API_REQUIRE_SIGNATURE = os.environ.get("MONUMENT_REQUIRE_SIGNATURE", "true").lower() == "true"
+
+# ─── 中继服务器安全 ──────────────────────────────────────
+# 中继服务器 API Key（空 = 不启用）
+RELAY_API_KEY = os.environ.get("MONUMENT_RELAY_KEY", "")
+# CORS 允许的来源（空列表 = 允许所有）
+RELAY_CORS_ORIGINS = [
+    o.strip() for o in os.environ.get("MONUMENT_RELAY_CORS", "").split(",")
+    if o.strip()
+]
+
 # ─── 确保数据目录存在 ───────────────────────────────────
 os.makedirs(str(DATA_DIR), exist_ok=True)
 os.makedirs(str(LOG_DIR), exist_ok=True)
