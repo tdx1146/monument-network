@@ -1,9 +1,9 @@
-# 丰碑网络 · Phase 1 代码架构设计
+# 丰碑网络 · 代码架构设计
 
-> 版本：v1.0
-> 更新时间：2026-07-11 23:32
-> 状态：架构设计文档
-> 对应 Phase：yfb-p1（本地闭环）
+> 版本：v2.0
+> 更新时间：2026-07-22
+> 状态：架构设计文档（Phase 5 架构对齐后更新）
+> 对应 Phase：yfb-p1 至 yfb-p5
 
 ---
 
@@ -13,13 +13,16 @@
 /vol2/1000/AI专用/丰碑网络/
 ├── code/                          # Phase 1 代码（本架构覆盖范围）
 │   ├── config.py                  # [统一配置] 所有路径/端口/URL
-│   ├── api/                       # [API 层] Flask/FastAPI 应用
+│   ├── api/                       # [API 层] Flask 应用
 │   │   ├── __init__.py
-│   │   ├── app.py                 # Flask 应用创建 & 路由注册
-│   │   ├── individual_routes.py   # 个体丰碑 API 路由
-│   │   ├── score_routes.py        # 积分 API 路由
-│   │   ├── freeze_routes.py       # 冻结检测 API 路由
-│   │   └── xuanjian_routes.py     # 玄鉴评分 API 路由
+│   │   ├── app.py                 # Flask 应用创建 & 路由注册 & 认证中间件
+│   │   ├── individual_routes.py   # 个体丰碑 API 路由 (CRUD)
+│   │   ├── score_routes.py        # 积分 API 路由 (增减查)
+│   │   ├── freeze_routes.py       # 冻结检测 API 路由 (状态/事件/检测)
+│   │   ├── xuanjian_routes.py     # 玄鉴评分 API 路由 (评估/查询)
+│   │   ├── monument_routes.py     # 跨实例同步 API (sync/query)
+│   │   ├── mcp_routes.py          # MCP 工具端点
+│   │   └── recovery_routes.py     # 恢复与副本管理 API
 │   ├── core/                      # [领域层] 纯业务逻辑
 │   │   ├── __init__.py
 │   │   ├── individual_monument.py # 个体丰碑数据结构与 CRUD

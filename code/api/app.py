@@ -91,6 +91,22 @@ def _register_routes(app):
     from api.monument_routes import register_monument_routes
     register_monument_routes(app)
 
+    # 个体丰碑 CRUD 路由
+    from api.individual_routes import register_individual_routes
+    register_individual_routes(app)
+
+    # 积分账本路由
+    from api.score_routes import register_score_routes
+    register_score_routes(app)
+
+    # 冻结检测路由
+    from api.freeze_routes import register_freeze_routes
+    register_freeze_routes(app)
+
+    # 玄鉴评分路由
+    from api.xuanjian_routes import register_xuanjian_routes
+    register_xuanjian_routes(app)
+
     # MCP 工具端点
     from api.mcp_routes import bp as mcp_bp
     app.register_blueprint(mcp_bp, url_prefix='/mcp')
