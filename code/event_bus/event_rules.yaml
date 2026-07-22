@@ -1,0 +1,43 @@
+# event_rules.yaml — 消费规则表
+# v0.4.1 — 对齐姐姐版本
+#
+# 规则匹配：基于 event_type + result 组合，命中后执行指定动作
+# 动作类型：bridge（桥接其他系统）、archive（归档）、escalate（升级告警）
+
+rules:
+
+  - id: "rule-task-complete"
+    description: "任务完成后桥接下游机制"
+    match:
+      event_type: task_complete
+      result: OK
+    action:
+      type: bridge
+      target: xuanjian_audit
+      command: "python3 /vol2/1000/AI专用/丰碑网络/code/core/audit.py --event {trace_id}"
+    max_retries: 3
+    rate_limit: 1.0  # 秒，同一规则最小间隔
+
+  - id: "rule-anomaly-escalate"
+    description: "检测到异常时升级告警"
+    match:
+      event_type: anomaly
+      result: FAIL
+    action:
+      type: escalate
+      target: alert_channel
+      command: "echo '[ALERT] 异常事件: {detail}' >> /vol2/1000/AI专用/丰碑网络/data/alerts.log"
+    max_retries: 2
+    rate_limit: 5.0
+
+  - id: "rule-audit-archive"
+    description: "审计完成后归档结果"
+    match:
+      event_type: audit_result
+      result: OK
+    action:
+      type: archive
+      target: log_archive
+      command: "python3 /vol2/1000/AI专用/丰碑网络/code/core/archive.py --event {trace_id}"
+    max_retries: 3
+    rate_limit: 2.0

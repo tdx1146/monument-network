@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Backups
+*.bak
+*.bak.*
+
+# Data
+data/
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,51 @@
+# 评分演化趋势（ASCII图表）
+
+```
+Avg Score Trend (Day 1 → 30)
+
+  1.0242 ┤
+  0.7971 ┤ █ Day  1 (alive=61)
+  0.7987 ┤ █ Day  2 (alive=61)
+  0.8045 ┤ █ Day  3 (alive=61)
+  0.8122 ┤ ██ Day  4 (alive=61)
+  0.8233 ┤ ████ Day  5 (alive=61)
+  0.8267 ┤ █████ Day  6 (alive=61)
+  0.8312 ┤ ██████ Day  7 (alive=61)
+  0.8322 ┤ ██████ Day  8 (alive=61)
+  0.8436 ┤ ████████ Day  9 (alive=61)
+  0.8590 ┤ ██████████ Day 10 (alive=61)
+  0.8603 ┤ ███████████ Day 11 (alive=61)
+  0.8760 ┤ █████████████ Day 12 (alive=61)
+  0.8822 ┤ ██████████████ Day 13 (alive=61)
+  0.8895 ┤ ████████████████ Day 14 (alive=61)
+  0.8965 ┤ █████████████████ Day 15 (alive=61)
+  0.9009 ┤ ██████████████████ Day 16 (alive=61)
+  0.9071 ┤ ███████████████████ Day 17 (alive=61)
+  0.9174 ┤ █████████████████████ Day 18 (alive=61)
+  0.9236 ┤ ██████████████████████ Day 19 (alive=61)
+  0.9326 ┤ ███████████████████████ Day 20 (alive=61)
+  0.9375 ┤ ████████████████████████ Day 21 (alive=61)
+  0.9465 ┤ ██████████████████████████ Day 22 (alive=61)
+  0.9566 ┤ ████████████████████████████ Day 23 (alive=61)
+  0.9702 ┤ ██████████████████████████████ Day 24 (alive=61)
+  0.9806 ┤ ████████████████████████████████ Day 25 (alive=61)
+  0.9858 ┤ █████████████████████████████████ Day 26 (alive=61)
+  0.9935 ┤ ██████████████████████████████████ Day 27 (alive=61)
+  1.0089 ┤ █████████████████████████████████████ Day 28 (alive=61)
+  1.0193 ┤ ███████████████████████████████████████ Day 29 (alive=61)
+  1.0242 ┤ ████████████████████████████████████████ Day 30 (alive=61)
+  0.7971 ┘
+
+Status Distribution Timeline
+  Day  1: endangered=  2 normal= 45 warning= 14
+  Day  4: endangered=  2 normal= 46 warning= 13
+  Day  7: endangered=  2 normal= 49 warning= 10
+  Day 10: endangered=  1 normal= 49 warning= 11
+  Day 13: endangered=  1 normal= 50 warning= 10
+  Day 16: endangered=  1 normal= 52 warning=  8
+  Day 19: endangered=  1 normal= 52 warning=  8
+  Day 22: endangered=  1 normal= 52 warning=  8
+  Day 25: endangered=  2 normal= 54 warning=  5
+  Day 28: endangered=  1 normal= 56 warning=  4
+  Day 30: endangered=  1 normal= 57 warning=  3
+```

@@ -1,0 +1,273 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "monument.v1.schema.json",
+    "title": "丰碑网络配置 Schema v1",
+    "description": "丰碑网络所有业务参数的 JSON Schema 验证。版本 v1.0.0",
+    "type": "object",
+    "required": ["$schema", "schema_version", "erosion", "reinforce", "thresholds", "rights", "display", "scoring", "candidate", "lva"],
+
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "指向 schema 文件的相对/绝对路径"
+        },
+        "schema_version": {
+            "type": "string",
+            "pattern": "^v\\d+\\.\\d+\\.\\d+$",
+            "description": "Schema 版本号，格式 v<major>.<minor>.<patch>"
+        },
+        "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "配置文件的目的说明"
+        },
+
+        "erosion": {
+            "type": "object",
+            "description": "磨损参数 — 丰碑随时间自然衰减",
+            "required": ["base_rate", "acceleration_threshold", "acceleration_factor", "score_max"],
+            "properties": {
+                "base_rate": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "基础磨损率（/天），分数乘以 (1 - rate)^days 衰减"
+                },
+                "acceleration_threshold": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "低于此阈值触发加速磨损"
+                },
+                "acceleration_factor": {
+                    "type": "number",
+                    "minimum": 1.0,
+                    "description": "低于加速阈值后，磨损率乘以该因子"
+                },
+                "score_max": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "分数上限（加固后分数不得超过此值）"
+                }
+            }
+        },
+
+        "reinforce": {
+            "type": "object",
+            "description": "加固参数 — 各操作对应的加固增量",
+            "required": [
+                "by_reference", "by_suggestion", "by_review", "by_edit",
+                "single_cap", "dampening_start", "dampening_min"
+            ],
+            "properties": {
+                "by_reference": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "引用加固值"
+                },
+                "by_suggestion": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "候选建议加固值"
+                },
+                "by_review": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "评审加固值"
+                },
+                "by_edit": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "编辑加固值（最珍贵）"
+                },
+                "single_cap": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "单次加固上限"
+                },
+                "dampening_start": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "分数超过此值开始效益递减"
+                },
+                "dampening_min": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "效益递减最低比例（乘法因子）"
+                }
+            }
+        },
+
+        "thresholds": {
+            "type": "object",
+            "description": "丰碑状态阈值",
+            "required": ["normal", "warning", "endangered", "archived"],
+            "properties": {
+                "normal": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "分数 > 此值为正常状态"
+                },
+                "warning": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "分数 > 此值为警告状态（⚠️标记）"
+                },
+                "endangered": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "分数 > 此值为濒危状态（移到候选区）"
+                },
+                "archived": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "分数 <= 此值为归档状态（移到墓园）"
+                }
+            }
+        },
+
+        "rights": {
+            "type": "object",
+            "description": "权利配额 — 用户操作的次数限制",
+            "required": [
+                "edit_create", "edit_amend", "suggest",
+                "review_per_round", "cooldown_days"
+            ],
+            "properties": {
+                "edit_create": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "每个用户创建权次数"
+                },
+                "edit_amend": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "每个用户修正权次数"
+                },
+                "suggest": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "每个用户候选建议权总数"
+                },
+                "review_per_round": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "每轮每人评审权次数"
+                },
+                "cooldown_days": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "操作冷却期（天）"
+                }
+            }
+        },
+
+        "display": {
+            "type": "object",
+            "description": "显示参数 — UI 展示相关配置",
+            "required": ["precision", "max_score"],
+            "properties": {
+                "precision": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "浮点数精度（小数位数）"
+                },
+                "max_score": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "最大展示分数"
+                }
+            }
+        },
+
+        "scoring": {
+            "type": "object",
+            "description": "评分权重 — 三维健康分加权参数",
+            "required": ["weight_quality", "weight_direction", "weight_discipline", "min_confidence"],
+            "properties": {
+                "weight_quality": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "质量权重（玄鉴分）"
+                },
+                "weight_direction": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "方向权重（目的树分）"
+                },
+                "weight_discipline": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "纪律权重（调度器分）"
+                },
+                "min_confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "最低置信度阈值"
+                }
+            }
+        },
+
+        "candidate": {
+            "type": "object",
+            "description": "候选晋升 — 草稿→候选→正式晋升参数",
+            "required": ["threshold_count", "threshold_score"],
+            "properties": {
+                "threshold_count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "晋升所需最小支持数"
+                },
+                "threshold_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "晋升所需最小评分"
+                }
+            }
+        },
+
+        "lva": {
+            "type": "object",
+            "description": "LVA（长期价值证明）参数",
+            "required": ["min_references", "min_score", "min_signatures"],
+            "properties": {
+                "min_references": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "获得 LVA 证明所需的最小引用次数"
+                },
+                "min_score": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "获得 LVA 证明所需的最小评分"
+                },
+                "min_signatures": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "获得 LVA 证明所需的最少签名数"
+                }
+            }
+        }
+    },
+
+    "additionalProperties": false
+}

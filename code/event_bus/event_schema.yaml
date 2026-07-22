@@ -1,0 +1,37 @@
+# event_schema.yaml — 事件数据契约
+# v1.0 — 对齐姐姐 v0.4.1
+
+version: "1.0"
+
+event_types:
+  - task_complete
+  - anomaly
+  - audit_result
+  - milestone
+  - consumer_action
+
+required_fields:
+  - field: t
+    type: ISO8601
+    description: "事件时间，ISO 8601 格式，含时区"
+  - field: event_type
+    type: string
+    description: "事件类型，必须在 event_types 列表中"
+  - field: producer
+    type: string
+    description: "产生事件的模块名，如 xuanjian_pipe, cron_health 等"
+  - field: result
+    type: string
+    enum: [OK, FAIL, WARN, TIMEOUT]
+    description: "事件结果状态"
+
+optional_fields:
+  - field: trace_id
+    type: string
+    description: "追踪链 ID，用于跨模块串联"
+  - field: detail
+    type: string
+    description: "事件详情描述"
+  - field: payload
+    type: object
+    description: "事件负载，按事件类型自由扩展"

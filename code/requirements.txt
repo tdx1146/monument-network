@@ -1,0 +1,23 @@
+# 丰碑网络 —— Python 依赖
+# 安装：pip3 install -r requirements.txt --break-system-packages
+
+# ─── 核心依赖 ──────────────────────────────────────────────
+
+# HTTP API 服务
+Flask>=3.0
+
+# 加密（Ed25519 签名）
+cryptography>=38.0
+
+# 配置验证（JSON Schema）
+jsonschema>=4.0.0
+
+# Kademlia DHT 节点发现
+kademlia>=2.2
+rpcudp>=5.0
+u-msgpack-python>=2.6
+
+# ─── 可选：跨实例同步 ─────────────────────────────────────
+
+# HTTP 客户端请求
+# requests>=2.31

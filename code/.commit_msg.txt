@@ -1,0 +1,8 @@
+feat: 子AI丰碑模板 + 全球生态模拟
+
+- 创建子AI丰碑报告模板 (templates/)
+- 全球生态模拟脚本 (simulate_global_ecology.py)
+- 模拟输出数据 (sim_output/)
+- 30天模拟结果：100%存活率
+
+版本: v3.7.4

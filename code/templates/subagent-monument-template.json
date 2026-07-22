@@ -1,0 +1,23 @@
+{
+  "title": "任务名称 - 完成报告",
+  "content": {
+    "正文": "详细工作成果：\n\n## 完成内容\n\n- [列出完成的具体任务]\n\n## 修改的文件\n\n- [列出修改的文件路径]\n\n## 发现的问题\n\n- [列出发现的问题]\n\n## 建议\n\n- [列出后续建议]",
+    "候选区": [
+      "发现的问题",
+      "待优化项",
+      "后续任务"
+    ]
+  },
+  "metadata": {
+    "creator": "子AI-ID（如：fix-keyword-injection）",
+    "task_type": "实现/审计/修复/模拟/分析",
+    "created_at": "2026-07-19T19:30:00+08:00",
+    "related_files": [
+      "修改的文件路径列表"
+    ],
+    "duration": "执行时长（如：3m25s）",
+    "tokens_used": "token消耗（如：56902）",
+    "model_used": "使用的模型（如：deepseek-v4-flash）",
+    "session_key": "子AI的session key"
+  }
+}
