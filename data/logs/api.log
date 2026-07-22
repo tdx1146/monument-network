@@ -1,0 +1,38 @@
+[2026-07-13 21:15:56,665] INFO in app: 丰碑网络节点启动: peer_id=AZ5lULcmrv7WbSfPGJhE5Je9fw+jy/QfrUfGjWPw5qQ=  http://0.0.0.0:18891  DHT-port=9000
+
+  ✅ 丰碑网络节点已启动
+  🆔  PeerID:  AZ5lULcmrv7WbSfPGJhE5Je9fw+jy/QfrUfGjWPw5qQ=
+  🌐  地址:    http://0.0.0.0:18891
+  📡  DHT:     UDP 9000
+  📋  端点:
+       POST /monument/sync    (接收丰碑，支持信封格式)
+       GET  /monument/query   (查询丰碑, 返回信封格式)
+       GET  /peers           (DHT 节点列表)
+       GET  /health           (健康检查)
+       GET  /info             (节点信息)
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+There are no known neighbors to set key 3995a0e8cb0bae3d4301805161f73b9200f73135
+There are no known neighbors to get key monument:hb:AZ5lULcmrv7WbSfPGJhE5Je9fw+jy/QfrUfGjWPw5qQ=
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:18891
+ * Running on http://192.168.0.149:18891
+Press CTRL+C to quit
+/usr/lib/python3/dist-packages/requests/__init__.py:109: RequestsDependencyWarning: urllib3 (2.7.0) or chardet (5.1.0)/charset_normalizer (3.0.1) doesn't match a supported version!
+  warnings.warn(
+127.0.0.1 - - [13/Jul/2026 21:15:59] "GET /monument/query HTTP/1.1" 200 -
+127.0.0.1 - - [13/Jul/2026 21:31:14] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [13/Jul/2026 21:31:14] "GET / HTTP/1.1" 404 -
+127.0.0.1 - - [13/Jul/2026 21:31:22] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [13/Jul/2026 21:31:22] "GET /info HTTP/1.1" 200 -
+There are no known neighbors to get key monument:hb:AZ5lULcmrv7WbSfPGJhE5Je9fw+jy/QfrUfGjWPw5qQ=
+127.0.0.1 - - [13/Jul/2026 21:31:22] "GET /peers HTTP/1.1" 200 -
+127.0.0.1 - - [13/Jul/2026 21:31:22] "GET /monument/query HTTP/1.1" 200 -
+192.168.0.149 - - [13/Jul/2026 21:31:32] "GET /health HTTP/1.1" 200 -
+2026-07-13 21:51:26 [INFO] 丰碑网络节点启动: peer_id=AZ5lULcmrv7WbSfPGJhE5Je9fw+jy/QfrUfGjWPw5qQ=  http://0.0.0.0:18891  DHT-port=9000
+2026-07-22 13:47:14 [INFO] 丰碑网络节点启动: peer_id=ZhNrhYSUGej+pAQfA79kR5jcTwLlWs4bV0VZygSGsig=  http://0.0.0.0:18891  DHT-port=9000
+2026-07-22 13:48:04 [INFO] 丰碑网络节点启动: peer_id=ZhNrhYSUGej+pAQfA79kR5jcTwLlWs4bV0VZygSGsig=  http://0.0.0.0:18891  DHT-port=9000
+2026-07-22 13:49:39 [INFO] 丰碑网络节点启动: peer_id=ZhNrhYSUGej+pAQfA79kR5jcTwLlWs4bV0VZygSGsig=  http://0.0.0.0:18891  DHT-port=9000
+2026-07-22 13:50:19 [INFO] 丰碑网络节点启动: peer_id=ZhNrhYSUGej+pAQfA79kR5jcTwLlWs4bV0VZygSGsig=  http://0.0.0.0:18891  DHT-port=9000

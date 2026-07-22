@@ -1,0 +1,13 @@
+{
+  "title": "分布式系统一致性协议全景",
+  "content": {
+    "正文": "一致性协议是分布式系统的核心基础设施。本文整理主流一致性协议的原理、特点与选型。\n\n## 一致性模型光谱\n```\n弱一致性 ←——————————————→ 强一致性\n  Eventual    Causal    Read-your-writes    Sequential    Linearizable\n```\n\n## 经典协议详解\n\n### Paxos\n- **目标**：在不可靠网络中对一个值达成共识\n- **角色**：Proposer、Acceptor、Learner\n- **阶段**：Prepare（选主）→ Promise → Accept → Accepted\n- **变体**：\n  - Multi-Paxos：稳定 Leader 后跳过 Prepare 阶段\n  - Fast Paxos：减少一轮通信\n  - Cheap Paxos：多数节点可用即可\n- **工程落地**：很少直接使用，多为理解基础\n\n### Raft\n- **设计目标**：Paxos 的可理解版本\n- **核心机制**：\n  - Leader 选举：随机超时 + 任期号\n  - 日志复制：Leader 强主模式\n  - 安全性：只有包含所有已提交日志的节点才能当选\n- **关键设计决策**：\n  - 强 Leader：所有写入走 Leader\n  - 日志连续：不允许空洞\n  - 仅追加尾部：不允许覆盖\n- **工程落地**：etcd、Consul、TiKV、MongoDB replica sets\n\n### Gossip 协议\n- **目的**：信息最终一致传播\n- **模式**：\n  - Push：节点主动推送信息\n  - Pull：定期拉取\n  - Push-Pull：混合\n- **特点**：\n  - 去中心化、抗故障\n  - O(log N) 轮次到达所有节点\n  - 存在冗余通信（O(N²)）\n- **应用**：DynamoDB、Cassandra、Redis Cluster\n\n### Zab（ZooKeeper Atomic Broadcast）\n- Raft 之前的设计，原则相似\n- 两阶段：Discovery → Synchronization → Broadcast\n\n### 2PC / 3PC\n- **2PC**：协调者 → 准备 → 提交/回滚。存在协调者单点和阻塞问题\n- **3PC**：增加 pre-commit 阶段，减少阻塞窗口\n- **适用**：短事务、小规模、可接受阻塞\n\n## CAP 定理的工程启示\n- 一致性（C）、可用性（A）、分区容错（P）三者不可兼得\n- 实际：分区总是可能发生，所以 P 是必选\n- CP vs AP 的选择：\n  - CP：银行、支付、库存系统\n  - AP：社交动态、推荐、监控\n- 现实是连续谱：不同操作可选择不同一致性级别\n\n## 选型指南\n\n| 场景 | 推荐协议 | 理由 |\n|------|---------|------|\n| 元数据存储 | Raft | 强一致、易理解、生态好 |\n| 配置管理 | Raft (etcd/Consul) | 强一致、watch 机制 |\n| 大规模数据集群 | Gossip + Raft 混合 | 成员管理用 Gossip，日志同步用 Raft |\n| 最终一致缓存 | Gossip | 去中心化、无单点 |\n| 短事务 | 2PC | 简单直接、双方都有事务支持 |\n| 跨地域复制 | CRDT + Gossip | 无冲突数据类型 |\n\n## 常见陷阱\n1. **脑裂**：网络分区导致两个 Leader\n2. **活锁**：选举超时太短导致反复选举\n3. **日志无限增长**：未实现快照压缩\n4. **成员变更错误**：一次变更多个成员导致脑裂\n5. **时钟依赖**：使用物理时钟而不是逻辑时钟",
+    "候选区": []
+  },
+  "metadata": {
+    "creator": "竞争者#4-领域",
+    "session_id": "competitor-4-domain",
+    "created_at": "2026-07-18T01:04:00+08:00",
+    "tags": ["领域", "分布式系统", "一致性", "Paxos", "Raft"]
+  }
+}

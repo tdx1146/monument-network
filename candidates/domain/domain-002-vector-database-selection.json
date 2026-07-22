@@ -1,0 +1,13 @@
+{
+  "title": "向量数据库选型指南",
+  "content": {
+    "正文": "向量数据库是 AI 应用的基础设施核心。本指南系统对比主流向量数据库，帮助根据场景选型。\n\n## 核心评估维度\n1. **搜索质量**：召回率（Recall@K）\n2. **查询延迟**：P50/P99 响应时间\n3. **写入吞吐**：每秒可写入的向量数\n4. **索引构建速度**：全量/增量索引更新时间\n5. **扩展性**：水平扩展能力、分片策略\n6. **部署模式**：自托管 vs 托管服务\n7. **成本**：硬件需求 vs 服务费用\n8. **生态集成**：与主流框架的兼容性\n\n## 主流方案对比\n\n### Pinecone\n- 优势：全托管、零运维、SLA 保障\n- 劣势：成本高、数据出口限制\n- 适用：中小团队快速上线\n- 索引：HNSW（默认）\n\n### Milvus / Zilliz Cloud\n- 优势：开源可自托管、支持多种索引类型、分布式原生\n- 劣势：运维复杂、集群部署需要经验\n- 索引：IVF_FLAT、IVF_SQ8、HNSW、DISKANN\n- 适用：大规模生产环境\n\n### Qdrant\n- 优势：Rust 实现高性能、过滤效率高、支持 payload 过滤\n- 劣势：社区规模相对小\n- 索引：HNSW 优化版\n- 适用：需要复杂过滤的 RAG 场景\n\n### Weaviate\n- 优势：内置向量化模块、GraphQL 接口、多模态支持\n- 劣势：配置灵活度低、资源消耗大\n- 适用：快速原型、多模态搜索\n\n### Chroma\n- 优势：轻量、Python 原生、易于嵌入\n- 劣势：不适合大规模生产、功能有限\n- 适用：本地开发、小规模实验\n\n### Supabase pgvector\n- 优势：基于 PostgreSQL、事务与向量并存\n- 劣势：索引性能有限、百万级向量后性能下降\n- 适用：已有 Postgres 基础设施的团队\n\n## 选型决策树\n\n1. **团队规模**\n   - 1-5 人无运维 → Pinecone / Weaviate Cloud\n   - 有运维能力 → Milvus / Qdrant 自托管\n2. **数据规模**\n   - < 100 万向量 → pgvector / Chroma\n   - 100 万 - 1 亿 → Milvus / Qdrant\n   - > 1 亿 → Milvus 分布式 / Pinecone\n3. **延迟要求**\n   - < 10ms P99 → Qdrant（内存索引）\n   - < 50ms P99 → Milvus HNSW / Pinecone\n   - > 50ms 可接受 → 多数方案\n4. **过滤复杂度**\n   - 简单过滤 → 多数支持\n   - 复杂布尔/范围过滤 → Qdrant / Elasticsearch\n\n## 索引选择速查\n| 索引类型 | 构建速度 | 查询速度 | 内存使用 | 适用场景 |\n|---------|---------|---------|---------|---------|\n| FLAT | 极快 | 慢 | 极高 | 小数据精确搜索 |\n| IVF_FLAT | 中等 | 快 | 高 | 精度优先 |\n| IVF_SQ8 | 快 | 较快 | 中 | 平衡选择 |\n| HNSW | 慢 | 极快 | 高 | 低延迟场景 |\n| DISKANN | 快 | 中等 | 低 | 超大存储态 |\n\n## RAG 场景推荐\n对于标准的 RAG 应用：\n1. 起步阶段：pgvector（如果已有 Postgres）或 Chroma\n2. 扩展阶段：Qdrant（过滤能力强）或 Milvus（规模弹性）\n3. 生产规模：Milvus 集群或 Pinecone（托管无忧）",
+    "候选区": []
+  },
+  "metadata": {
+    "creator": "竞争者#4-领域",
+    "session_id": "competitor-4-domain",
+    "created_at": "2026-07-18T01:02:00+08:00",
+    "tags": ["领域", "数据库", "向量数据库", "AI基础设施"]
+  }
+}

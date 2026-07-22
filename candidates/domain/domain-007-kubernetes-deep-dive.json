@@ -1,0 +1,13 @@
+{
+  "title": "Kubernetes 核心原理深度解析",
+  "content": {
+    "正文": "Kubernetes 是容器编排的事实标准。本文深入解析 K8s 的核心组件和工作原理。\n\n## 架构概览\n\n### 控制平面（Control Plane）\n1. **kube-apiserver**：所有操作入口，REST API，认证授权准入\n2. **etcd**：分布式键值存储，集群状态的唯一来源（Source of Truth）\n3. **kube-scheduler**：将 Pod 分配到 Node\n4. **kube-controller-manager**：运行控制循环，确保实际状态匹配期望状态\n\n### 工作节点（Worker Node）\n1. **kubelet**：节点代理，负责创建/管理 Pod\n2. **kube-proxy**：网络代理，实现 Service 路由\n3. **容器运行时**（containerd / CRI-O / Docker）\n\n## 核心机制\n\n### Pod 调度流程\n1. 用户 `kubectl apply` → 写入 etcd\n2. Scheduler 监听 Pod 变更 → 过滤（Filtering）→ 评分（Scoring）→ 绑定\n3. kubelet 收到绑定 → 拉取镜像 → 创建容器\n\n### 调度策略\n- **过滤阶段**：资源不足、端口冲突、污点容忍、节点亲和\n- **评分阶段**：资源空闲率、反亲和规则、拓扑分布\n- **高级调度**：\n  - 节点亲和（nodeAffinity）：强制/偏好选择节点池\n  - Pod 亲和（podAffinity）：调度到同节点/同区域\n  - 污点容忍（Taints/Tolerations）：限制哪些 Pod 可调度到节点\n  - 拓扑分布约束（Topology Spread Constraints）：跨可用区分布\n\n### 控制器模式\n- **核心思想**：期望状态 vs 实际状态的 Reconcile 循环\n- ReplicaSet：确保指定数量 Pod 运行\n- Deployment：滚动更新、回滚\n- StatefulSet：有状态服务，顺序启停\n- DaemonSet：每个节点运行一个 Pod\n- Job/CronJob：批处理任务\n\n### 网络模型\n- **扁平化网络**：每个 Pod 有独立 IP，Pod 间直接通信\n- **CNI 插件**：Calico（网络策略强大）、Flannel（简单）、Cilium（eBPF 高性能）\n- **Service**：\n  - ClusterIP：集群内访问\n  - NodePort：节点端口映射\n  - LoadBalancer：云厂商 LB 集成\n  - Ingress：七层负载，域名路由\n- **DNS**：CoreDNS 自动解析 Service\n\n### 存储\n- **Volume 生命周期**：与 Pod 绑定的临时存储\n- **PV/PVC**：持久化存储，解耦存储消费与存储提供\n- **StorageClass**：动态制备 PV\n- **CSI**：通用存储接口，支持各类外部存储\n\n### 配置与密钥\n- **ConfigMap**：非敏感配置\n- **Secret**：敏感信息（base64 编码，配合 RBAC 使用）\n- 注入方式：环境变量、配置文件挂载\n\n## 生产实践\n\n1. **资源管理**：为每个容器设置 requests 和 limits\n2. **健康检查**：livenessProbe / readinessProbe / startupProbe\n3. **HPA（Pod 水平自动伸缩）**：基于 CPU/内存/自定义指标\n4. **PodDisruptionBudget**：确保集群维护时不中断服务\n5. **网络策略**：最小权限原则，默认拒绝\n6. **RBAC**：Service Account + Role + RoleBinding\n7. **日志**：节点级 Fluentd 或 DaemonSet 日志采集\n\n## 常见陷阱\n1. **不设 requests/limits**：节点资源被耗尽（Noisy Neighbor）\n2. **镜像拉取策略不当**：频繁拉取或永不更新\n3. **Pod 反亲和遗忘**：所有副本调度到同一节点\n4. **etcd 性能瓶颈**：磁盘 IOPS 过低\n5. **日志写满节点磁盘**：缺乏日志轮转限制\n6. **Service 目标选择错误**：label selector 不匹配",
+    "候选区": []
+  },
+  "metadata": {
+    "creator": "竞争者#4-领域",
+    "session_id": "competitor-4-domain",
+    "created_at": "2026-07-18T01:12:00+08:00",
+    "tags": ["领域", "Kubernetes", "容器编排", "云原生"]
+  }
+}

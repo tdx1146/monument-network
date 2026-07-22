@@ -1,0 +1,13 @@
+{
+  "title": "API 设计原则与演化策略",
+  "content": {
+    "正文": "API 是系统对外的门面，好的 API 设计决定了系统的可用性和可维护性。本文整理 API 设计的最佳实践和演化策略。\n\n## API 协议选型\n\n### REST\n- **核心原则**：资源导向、无状态、统一接口\n- **适用**：CRUD 为主的业务系统\n- **优势**：简单、成熟、浏览器兼容\n- **劣势**：过度获取/不足获取、版本管理复杂\n\n### GraphQL\n- **核心原则**：客户端精确获取所需字段\n- **适用**：数据需求复杂多变的前端\n- **优势**：精准查询、强类型 Schema\n- **劣势**：查询性能难预估、缓存复杂\n\n### gRPC\n- **核心原则**：Protocol Buffers + HTTP/2\n- **适用**：服务间通信、高吞吐场景\n- **优势**：二进制高效、流式支持、多语言代码生成\n- **劣势**：浏览器支持弱、调试困难\n\n## REST 设计规范\n\n### URL 设计\n- 资源使用名词复数：`/users` `/orders`\n- 层级用路径：`/users/{id}/orders`\n- 非资源操作用动词：`/users/{id}/activate`\n- 查询参数：`?status=active&page=1&sort=-created_at`\n\n### HTTP 方法\n- GET：查询（幂等、安全）\n- POST：创建（非幂等）\n- PUT：全量更新（幂等）\n- PATCH：部分更新（幂等）\n- DELETE：删除（幂等）\n\n### 状态码\n- 200 OK / 201 Created / 204 No Content\n- 301 Moved / 304 Not Modified\n- 400 Bad Request / 401 Unauthorized / 403 Forbidden / 404 Not Found\n- 409 Conflict / 422 Unprocessable\n- 429 Too Many Requests / 500 Internal / 503 Unavailable\n\n### 错误响应\n```json\n{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"邮箱格式不正确\",\n    \"details\": [\n      {\"field\": \"email\", \"reason\": \"invalid_format\"}\n    ],\n    \"request_id\": \"req-abc-123\"\n  }\n}\n```\n\n## API 演化与版本管理\n\n### 版本管理策略\n1. **URL 路径版本**：`/v1/users` `/v2/users`\n   - 简单但容易导致代码臃肿\n2. **请求头版本**：`Accept: application/vnd.myapi.v1+json`\n   - 干净但调试不方便\n3. **查询参数版本**：`/users?version=1`\n   - 请求缓存效果差\n4. **兼容性优先（无显式版本）**\n   - 只加字段不改字段\n   - 向前兼容：新客户端可处理旧响应\n   - 向后兼容：旧客户端可处理新响应\n\n### 兼容变更规则\n- **安全扩展**：加字段、加端点、加枚举值\n- **破坏变更**：删字段、改字段类型、改行为语义\n- **过渡期**：破坏变更至少提供一个版本过渡期\n- **弃用通知**：在响应头加 `Sunset: Sat, 01 Jan 2027 00:00:00 GMT`\n\n## 安全设计\n1. **认证**：JWT / OAuth2 / API Key\n2. **授权**：RBAC（角色）+ ABAC（属性）混合\n3. **限流**：每用户/每 IP 的速率限制\n4. **输入验证**：白名单校验、长度限制、类型检查\n5. **输出过滤**：敏感字段返回前脱敏\n6. **CORS**：最小化允许的来源\n\n## 文档与规范\n1. **OpenAPI 3.0**：REST API 的接口定义标准\n2. **API 文档自动生成**：从注释或代码生成\n3. **客户端 SDK 生成**：OpenAPI → 各语言客户端\n4. **变更日志**：每次 API 变更记录在 Changelog\n\n## 可观测性\n1. **请求 Trace ID**：贯穿所有服务\n2. **结构化日志**：统一日志格式\n3. **指标**：每个端点的 P50/P99 延迟、错误率\n4. **健康检查**：`/health` `/ready` 端点",
+    "候选区": []
+  },
+  "metadata": {
+    "creator": "竞争者#4-领域",
+    "session_id": "competitor-4-domain",
+    "created_at": "2026-07-18T01:16:00+08:00",
+    "tags": ["领域", "API", "REST", "GraphQL", "gRPC"]
+  }
+}

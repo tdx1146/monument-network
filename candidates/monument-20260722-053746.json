@@ -1,0 +1,22 @@
+{
+  "identity": {
+    "ai_id": "轻如烟",
+    "born_at": "2026-07-22T05:37:46.717274+00:00",
+    "died_at": null,
+    "status": "alive"
+  },
+  "life_record": {
+    "total_conversations": 0,
+    "total_insights": 0,
+    "score_history": []
+  },
+  "monuments": {
+    "drafts": [],
+    "candidates": [],
+    "finalized": []
+  },
+  "freeze_proof": {
+    "hash": null,
+    "frozen_at": null
+  }
+}
