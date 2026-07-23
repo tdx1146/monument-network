@@ -193,13 +193,19 @@ class EventConsumer:
             print(f"[event_consumer] ⚠️ 规则 {rule.get('id')} 无 command 配置")
             return False
 
-        # 模板变量替换
+        # 模板变量替换（含路径参数化）
+        code_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base_dir = os.path.dirname(code_dir)
+        data_dir = os.path.join(base_dir, "data")
         command = command_template.format(
             trace_id=event.get("trace_id", "unknown"),
             event_type=event.get("event_type", "unknown"),
             producer=event.get("producer", "unknown"),
             result=event.get("result", "unknown"),
             detail=event.get("detail", ""),
+            CODE_DIR=code_dir,
+            DATA_DIR=data_dir,
+            BASE_DIR=base_dir,
         )
 
         # Shell 安全检查
@@ -315,11 +321,8 @@ class EventConsumer:
 
                 with open(self._event_file, "r", encoding="utf-8") as f:
                     f.seek(seek_offset)
-                    new_lines = []
-                    new_offset = seek_offset
-                    for line in f:
-                        new_lines.append(line)
-                        new_offset = f.tell()
+                    new_lines = f.readlines()
+                    new_offset = f.tell()
 
                     if not new_lines:
                         # 无新事件

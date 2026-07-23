@@ -29,8 +29,10 @@ import os
 import re
 import uuid
 from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+_BJT = timezone(timedelta(hours=8))
 from typing import Any, Optional
 
 from config import (
@@ -387,11 +389,12 @@ class XuanjianPipe:
         """在 evaluate() return 前写入 task_complete 事件"""
         try:
             self.log_writer.write({
-                't': datetime.now().isoformat(),
+                't': datetime.now(_BJT).isoformat(),
                 'event_type': 'task_complete',
                 'producer': 'xuanjian_pipe',
                 'result': 'OK' if analysis.monument_score >= XUANJIAN_MIN_CONFIDENCE else 'WARN',
-                'detail': f'monument_score={analysis.monument_score:.3f}'
+                'detail': f'monument_score={analysis.monument_score:.3f}',
+                'trace_id': analysis.insight_id,
             })
         except Exception as e:
             import sys
@@ -401,11 +404,12 @@ class XuanjianPipe:
         """在 _trigger_candidate 末尾写入 milestone 事件"""
         try:
             self.log_writer.write({
-                't': datetime.now().isoformat(),
+                't': datetime.now(_BJT).isoformat(),
                 'event_type': 'milestone',
                 'producer': 'xuanjian_pipe',
                 'result': 'OK',
-                'detail': f'candidate triggered: confidence={analysis.confidence:.3f}'
+                'detail': f'candidate triggered: confidence={analysis.confidence:.3f}',
+                'trace_id': analysis.insight_id,
             })
         except Exception as e:
             pass

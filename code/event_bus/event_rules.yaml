@@ -1,43 +1,68 @@
-# event_rules.yaml — 消费规则表
-# v0.4.1 — 对齐姐姐版本
-#
-# 规则匹配：基于 event_type + result 组合，命中后执行指定动作
-# 动作类型：bridge（桥接其他系统）、archive（归档）、escalate（升级告警）
+# event_rules.yaml - event consumer rules
+# v0.5.0 - rewrite: fix ghost script refs, add missing rules, parameterize paths
 
 rules:
 
-  - id: "rule-task-complete"
-    description: "任务完成后桥接下游机制"
+  - id: "rule-task-complete-audit"
+    description: "task complete OK -> write audit to operation_log"
     match:
       event_type: task_complete
       result: OK
     action:
       type: bridge
-      target: xuanjian_audit
-      command: "python3 /vol2/1000/AI专用/丰碑网络/code/core/audit.py --event {trace_id}"
-    max_retries: 3
-    rate_limit: 1.0  # 秒，同一规则最小间隔
+      target: operation_log
+      command: >-
+        python3 -c "import json,datetime;f=open('{DATA_DIR}/operation_log.jsonl','a',encoding='utf-8');f.write(json.dumps({'t':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),'level':'INFO','actor':'event_consumer','action':'task_complete_audit','result':'OK','detail':'audit for {trace_id}','trace_id':'{trace_id}'},ensure_ascii=False)+'\n';f.close()"
+    max_retries: 2
+    rate_limit: 1.0
+
+  - id: "rule-task-warn-degrade"
+    description: "low confidence WARN -> degrade log"
+    match:
+      event_type: task_complete
+      result: WARN
+    action:
+      type: escalate
+      target: degrade_log
+      command: >-
+        python3 -c "import json,datetime;f=open('{DATA_DIR}/degrade_events.log','a',encoding='utf-8');f.write(json.dumps({'t':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),'event_type':'task_complete','result':'WARN','producer':'{producer}','detail':'{detail}','trace_id':'{trace_id}'},ensure_ascii=False)+'\n';f.close()"
+    max_retries: 2
+    rate_limit: 0.5
+
+  - id: "rule-milestone-archive"
+    description: "milestone -> archive to milestone_archive.jsonl"
+    match:
+      event_type: milestone
+      result: OK
+    action:
+      type: archive
+      target: milestone_archive
+      command: >-
+        python3 -c "import json,datetime;f=open('{DATA_DIR}/milestone_archive.jsonl','a',encoding='utf-8');f.write(json.dumps({'t':datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),'event_type':'milestone','producer':'{producer}','detail':'{detail}','trace_id':'{trace_id}'},ensure_ascii=False)+'\n';f.close()"
+    max_retries: 2
+    rate_limit: 2.0
 
   - id: "rule-anomaly-escalate"
-    description: "检测到异常时升级告警"
+    description: "anomaly FAIL -> alert"
     match:
       event_type: anomaly
       result: FAIL
     action:
       type: escalate
       target: alert_channel
-      command: "echo '[ALERT] 异常事件: {detail}' >> /vol2/1000/AI专用/丰碑网络/data/alerts.log"
+      command: >-
+        python3 -c "f=open('{DATA_DIR}/alerts.log','a',encoding='utf-8');f.write('[ALERT] '+__import__('datetime').datetime.now().isoformat()+' anomaly: {detail} (trace={trace_id})\n');f.close()"
     max_retries: 2
     rate_limit: 5.0
 
-  - id: "rule-audit-archive"
-    description: "审计完成后归档结果"
+  - id: "rule-consumer-ok-health"
+    description: "consumer action OK -> health noop"
     match:
-      event_type: audit_result
+      event_type: consumer_action
       result: OK
     action:
-      type: archive
-      target: log_archive
-      command: "python3 /vol2/1000/AI专用/丰碑网络/code/core/archive.py --event {trace_id}"
-    max_retries: 3
-    rate_limit: 2.0
+      type: bridge
+      target: health_log
+      command: "python3 -c pass"
+    max_retries: 1
+    rate_limit: 10.0

@@ -267,6 +267,49 @@ def quick_test():
     print("=" * 50)
 
 
+def _load_tasks_from_yaml(yaml_path: str = None) -> list:
+    """从 tasks.yaml 加载任务配置。
+
+    参数:
+        yaml_path: tasks.yaml 路径（默认: event_bus/tasks.yaml）
+
+    返回:
+        任务列表 [{"id": ..., "cron": ..., "command": ..., "timeout": ...}, ...]
+    """
+    if yaml_path is None:
+        yaml_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "tasks.yaml"
+        )
+
+    if not os.path.exists(yaml_path):
+        print(f"[task_scheduler] tasks.yaml not found: {yaml_path}")
+        return []
+
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    tasks = data.get("tasks", [])
+
+    # 参数化路径: {CODE_DIR}, {DATA_DIR}, {BASE_DIR}
+    code_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_dir = os.path.dirname(code_dir)
+    data_dir = os.path.join(base_dir, "data")
+
+    for task in tasks:
+        cmd = task.get("command", "")
+        cmd = cmd.replace("{CODE_DIR}", code_dir)
+        cmd = cmd.replace("{DATA_DIR}", data_dir)
+        cmd = cmd.replace("{BASE_DIR}", base_dir)
+        task["command"] = cmd
+        # tasks.yaml uses "schedule" key, convert to "cron" for internal use
+        if "schedule" in task and "cron" not in task:
+            task["cron"] = task.pop("schedule")
+
+    print(f"[task_scheduler] Loaded {len(tasks)} tasks from {yaml_path}")
+    return tasks
+
+
 def main():
     """命令行入口"""
     import argparse
@@ -274,14 +317,17 @@ def main():
     parser = argparse.ArgumentParser(description="定时调度器")
     parser.add_argument("--test", action="store_true", help="运行快速自测")
     parser.add_argument("--daemon", action="store_true", help="以后台模式运行")
+    parser.add_argument("--tasks-file", default=None, help="tasks.yaml 路径")
     args = parser.parse_args()
 
     if args.test:
         quick_test()
         return
 
+    tasks = _load_tasks_from_yaml(args.tasks_file)
+
     scheduler = TaskScheduler()
-    scheduler.load_tasks([])  # 实际使用时需要加载任务配置
+    scheduler.load_tasks(tasks)
     scheduler.start()
 
     try:
@@ -291,7 +337,7 @@ def main():
         print("\n[task_scheduler] 收到 Ctrl+C，正在关闭...")
         scheduler.stop()
 
-    print("[task_scheduler] 👋 已退出")
+    print("[task_scheduler] 已退出")
 
 
 if __name__ == "__main__":
