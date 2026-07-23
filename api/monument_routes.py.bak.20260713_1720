@@ -1,0 +1,231 @@
+"""
+丰碑同步端点 —— 跨实例丰碑交换 HTTP API
+
+端点：
+    POST /monument/sync         接收丰碑（含签名验证）
+    GET  /monument/query?since= 查询丰碑（过滤时间戳）
+
+依赖注入模式：
+    - 所有外部依赖通过函数参数传入
+    - 路由注册时自动绑定全局实例
+"""
+
+import json
+import logging
+from datetime import datetime
+from typing import Optional
+
+from flask import Flask, request, jsonify
+
+from db.database import init_db
+from db.individual_repo import IndividualRepository
+from db.score_repo import ScoreRepository
+from core.cross_instance import (
+    import_monument_json,
+    export_monument_json,
+    PROTOCOL_VERSION,
+)
+from core.p2p_network import P2PIdentity, verify_monument_message, sign_monument_message
+
+
+logger = logging.getLogger("monument-api")
+
+
+# ─── 节点身份（延迟初始化）────────────────────────────────
+_node_identity_instance = None
+
+
+def _get_identity():
+    """获取本节点 P2P 身份（单例，延迟加载）。"""
+    global _node_identity_instance
+    if _node_identity_instance is not None:
+        return _node_identity_instance
+
+    import os
+    from config import DATA_DIR
+
+    ident_path = os.path.join(DATA_DIR, "p2p_identity.key")
+    if os.path.exists(ident_path):
+        with open(ident_path, "rb") as f:
+            priv_key = f.read()
+        _node_identity_instance = P2PIdentity(private_key=priv_key)
+    else:
+        _node_identity_instance = P2PIdentity()
+        os.makedirs(os.path.dirname(ident_path), exist_ok=True)
+        with open(ident_path, "wb") as f:
+            f.write(_node_identity_instance.private_key_bytes)
+        logger.info("生成新 P2P 身份: peer_id=%s", _node_identity_instance.peer_id)
+
+    return _node_identity_instance
+
+
+# ─── 全局依赖实例 ─────────────────────────────────────────
+_repo_individual: Optional[IndividualRepository] = None
+_repo_score: Optional[ScoreRepository] = None
+
+
+def _ensure_repos():
+    """确保仓储实例已初始化。"""
+    global _repo_individual, _repo_score
+    if _repo_individual is None:
+        init_db()
+        _repo_individual = IndividualRepository()
+    if _repo_score is None:
+        _repo_score = ScoreRepository()
+    return _repo_individual, _repo_score
+
+
+# ─── 路由注册 ─────────────────────────────────────────────
+
+def register_monument_routes(app: Flask):
+    """向 Flask 应用注册丰碑相关路由。"""
+
+    @app.route("/monument/sync", methods=["POST"])
+    def monument_sync():
+        """
+        接收一个或多个丰碑。
+
+        请求体：JSON
+            {
+                "protocol": "monument-exchange-v1",
+                "from_peer": "Base64(public_key)",
+                "monuments": [ ... ],
+                "signature": "Base64(signature)"
+            }
+
+        返回：
+            {
+                "status": "success" | "error",
+                "monuments_imported": int,
+                "message": str
+            }
+        """
+        repo_individual, repo_score = _ensure_repos()
+
+        # 解析 JSON
+        if not request.is_json:
+            return jsonify({
+                "status": "error",
+                "message": "请求体必须是 JSON"
+            }), 400
+
+        data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({
+                "status": "error",
+                "message": "JSON 解析失败"
+            }), 400
+
+        # 验证协议版本
+        if data.get("protocol") != PROTOCOL_VERSION:
+            return jsonify({
+                "status": "error",
+                "message": f"协议版本不匹配: {data.get('protocol')}"
+            }), 400
+
+        # ── 签名验证 ──
+        # 如果请求包含签名，则验证
+        if "signature" in data and data.get("from_peer"):
+            is_valid, err_msg = verify_monument_message(data)
+            if not is_valid:
+                logger.warning("签名验证失败: %s", err_msg)
+                return jsonify({
+                    "status": "error",
+                    "message": f"签名验证失败: {err_msg}"
+                }), 401
+
+            logger.info("签名验证通过: from_peer=%s", data.get("from_peer"))
+
+        # ── 字段规整 ──
+        # import_monument_json 需要 "from" 或 "ai_id" 字段
+        # 如果未提供，从 from_peer 推断
+        if "from" not in data and "ai_id" not in data:
+            data["from"] = data.get("from_peer", "remote-node")
+        if "ai_id" not in data and "from" in data:
+            data["ai_id"] = data["from"]
+
+        # ── 使用 cross_instance.import_monument_json 导入 ──
+        json_str = json.dumps(data, ensure_ascii=False)
+        result = import_monument_json(json_str, repo_individual, repo_score)
+
+        if result["status"] == "error":
+            return jsonify(result), 400
+
+        logger.info(
+            "导入 %d 条丰碑 from=%s",
+            result["monuments_imported"],
+            data.get("from_peer", "unknown"),
+        )
+
+        return jsonify(result), 200
+
+    @app.route("/monument/query", methods=["GET"])
+    def monument_query():
+        """
+        查询丰碑列表。
+
+        查询参数：
+            since (可选): ISO 时间戳，只返回该时间之后的丰碑
+
+        返回：
+            {
+                "status": "success",
+                "protocol": "monument-exchange-v1",
+                "from_peer": "本节点 PeerID",
+                "monuments": [ ... ],
+                "count": int,
+                "signature": "签名"
+            }
+        """
+        repo_individual, _ = _ensure_repos()
+
+        since_str = request.args.get("since")
+        identity = _get_identity()
+
+        # 获取所有丰碑
+        all_items = repo_individual.list_all()
+
+        # 构建 monments 列表（多节点将所有丰碑导出）
+        monuments = []
+        for item in all_items:
+            ai_id = item["ai_id"]
+            monument = repo_individual.get_by_ai_id(ai_id)
+            if monument is None:
+                continue
+
+            # 筛选 draft + candidate + finalized
+            for tier in ["drafts", "candidates", "finalized"]:
+                for entry in monument.data["monuments"].get(tier, []):
+                    created = entry.get("created_at", "")
+                    # 如果 since 过滤
+                    if since_str and created < since_str:
+                        continue
+                    monuments.append({
+                        "id": f"{ai_id}-{entry['id']}",
+                        "ai_id": ai_id,
+                        "type": entry["type"],
+                        "content": entry["content"],
+                        "metadata": entry.get("metadata", {}),
+                        "created_at": created,
+                    })
+
+        # 构建响应消息
+        response = {
+            "protocol": PROTOCOL_VERSION,
+            "from_peer": identity.peer_id,
+            "monuments": monuments,
+            "count": len(monuments),
+        }
+
+        # 对响应签名
+        signed = sign_monument_message(response, identity)
+
+        return jsonify(signed), 200
+
+    # 在应用启动时初始化 DB
+    @app.before_request
+    def _init_db_once():
+        """应用启动时初始化数据库（只执行一次）。"""
+        if not hasattr(app, "_db_inited"):
+            init_db()
+            app._db_inited = True

@@ -1,0 +1,401 @@
+"""
+丰碑自动广播与同步 —— 去重、增量同步、全网收敛
+
+模块职责：
+  - 新丰碑自动广播到所有已知节点
+  - 接收丰碑时验签 + 存储 + 继续广播
+  - 去重机制（丰碑ID + 签名）
+  - 增量同步（since timestamp）
+  - 全网收敛保证
+"""
+
+import json
+import hashlib
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import requests
+
+from config import API_HOST, API_PORT
+from core.p2p_network import (
+    P2PIdentity,
+    sign_monument_message,
+    verify_monument_message
+)
+from core.cross_instance import import_monument_json
+from db.individual_repo import IndividualRepository
+
+
+# ─── 去重机制 ──────────────────────────────────────────────
+
+class DeduplicationCache:
+    """
+    去重缓存 —— 基于丰碑ID和签名
+    
+    使用内存缓存记录已处理的丰碑签名
+    """
+    
+    def __init__(self, max_size: int = 10000):
+        self._cache: Set[str] = set()
+        self._max_size = max_size
+    
+    def _compute_key(self, monument_id: str, signature: str) -> str:
+        """计算去重键。"""
+        raw = f"{monument_id}:{signature}".encode('utf-8')
+        return hashlib.sha256(raw).hexdigest()
+    
+    def add(self, monument_id: str, signature: str) -> bool:
+        """
+        添加丰碑到缓存。
+        
+        Returns:
+            bool: True 表示新增，False 表示已存在
+        """
+        key = self._compute_key(monument_id, signature)
+        if key in self._cache:
+            return False
+        
+        # 缓存满时，清空一半（简化处理）
+        if len(self._cache) >= self._max_size:
+            self._cache = set(list(self._cache)[self._max_size // 2:])
+        
+        self._cache.add(key)
+        return True
+    
+    def contains(self, monument_id: str, signature: str) -> bool:
+        """检查丰碑是否已处理。"""
+        key = self._compute_key(monument_id, signature)
+        return key in self._cache
+    
+    def clear(self):
+        """清空缓存。"""
+        self._cache.clear()
+
+
+# ─── 丰碑广播器 ────────────────────────────────────────────
+
+class MonumentBroadcaster:
+    """
+    丰碑广播器 —— 负责将新丰碑推送到所有已知节点
+    """
+    
+    def __init__(
+        self,
+        identity: P2PIdentity,
+        known_peers: Optional[Dict[str, str]] = None,
+        timeout: float = 5.0
+    ):
+        """
+        Args:
+            identity:     本节点身份（用于签名）
+            known_peers:  已知节点 {peer_id: http_address}
+            timeout:      HTTP 请求超时（秒）
+        """
+        self.identity = identity
+        self.known_peers = known_peers or {}
+        self.timeout = timeout
+    
+    def add_peer(self, peer_id: str, address: str):
+        """添加已知节点。"""
+        self.known_peers[peer_id] = address
+    
+    def remove_peer(self, peer_id: str):
+        """移除节点。"""
+        self.known_peers.pop(peer_id, None)
+    
+    def broadcast(
+        self,
+        monument_data: Dict[str, Any],
+        exclude_peers: Optional[Set[str]] = None
+    ) -> Dict[str, bool]:
+        """
+        广播丰碑到所有已知节点。
+        
+        Args:
+            monument_data: 丰碑数据
+            exclude_peers: 排除的节点（避免回环）
+        
+        Returns:
+            {peer_id: success}
+        """
+        exclude_peers = exclude_peers or set()
+        
+        # 签名丰碑
+        signed_data = sign_monument_message(monument_data, self.identity)
+        
+        results = {}
+        for peer_id, address in self.known_peers.items():
+            if peer_id in exclude_peers:
+                continue
+            
+            try:
+                url = f"http://{address}/monument/sync"
+                response = requests.post(
+                    url,
+                    json=signed_data,
+                    timeout=self.timeout,
+                    headers={"Content-Type": "application/json"}
+                )
+                results[peer_id] = response.status_code == 200
+            except Exception as e:
+                results[peer_id] = False
+        
+        return results
+    
+    def query_incremental(
+        self,
+        peer_id: str,
+        since: str
+    ) -> Tuple[bool, List[Dict[str, Any]]]:
+        """
+        增量查询丰碑。
+        
+        Args:
+            peer_id: 目标节点 ID
+            since:   时间戳（ISO格式）
+        
+        Returns:
+            (success, monuments)
+        """
+        if peer_id not in self.known_peers:
+            return False, []
+        
+        address = self.known_peers[peer_id]
+        try:
+            url = f"http://{address}/monument/query"
+            params = {"since": since}
+            response = requests.get(
+                url,
+                params=params,
+                timeout=self.timeout
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return True, data.get("monuments", [])
+            else:
+                return False, []
+        except Exception:
+            return False, []
+
+
+# ─── 丰碑同步管理器 ────────────────────────────────────────
+
+class MonumentSyncManager:
+    """
+    丰碑同步管理器 —— 协调广播、接收、去重
+    """
+    
+    def __init__(
+        self,
+        identity: P2PIdentity,
+        repo: IndividualRepository,
+        score_repo = None,
+        max_cache_size: int = 10000
+    ):
+        self.identity = identity
+        self.repo = repo
+        self.score_repo = score_repo
+        self.dedup_cache = DeduplicationCache(max_cache_size)
+        self.broadcaster = MonumentBroadcaster(identity)
+    
+    def on_new_monument(
+        self,
+        ai_id: str,
+        monument: Dict[str, Any]
+    ) -> Dict[str, bool]:
+        """
+        新丰碑产生时调用 —— 自动广播。
+        
+        Args:
+            ai_id:     丰碑所属 AI
+            monument:  丰碑数据
+        
+        Returns:
+            {peer_id: success}
+        """
+        # 构建广播数据
+        monument_data = {
+            "protocol": "monument-exchange-v1",
+            "from": self.identity.peer_id,
+            "ai_id": ai_id,
+            "monuments": [monument],
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # 广播到所有节点（排除自己）
+        results = self.broadcaster.broadcast(
+            monument_data,
+            exclude_peers={self.identity.peer_id}
+        )
+        
+        return results
+    
+    def on_receive_monument(
+        self,
+        signed_data: Dict[str, Any],
+        broadcast_forward: bool = True
+    ) -> Tuple[bool, str]:
+        """
+        接收丰碑时调用 —— 验签、存储、继续广播。
+        
+        Args:
+            signed_data:       签名后的丰碑数据
+            broadcast_forward: 是否继续广播
+        
+        Returns:
+            (success, message)
+        """
+        # 验签
+        is_valid, error_msg = verify_monument_message(signed_data)
+        if not is_valid:
+            return False, f"签名验证失败: {error_msg}"
+        
+        # 提取签名
+        signature = signed_data.get("signature", "")
+        
+        # 去重检查
+        for monument in signed_data.get("monuments", []):
+            monument_id = monument.get("id", "")
+            if self.dedup_cache.contains(monument_id, signature):
+                return False, "丰碑已处理（去重）"
+        
+        # 导入丰碑
+        json_str = json.dumps(signed_data, ensure_ascii=False)
+        result = import_monument_json(json_str, self.repo, self.score_repo)
+        
+        if result["status"] != "success":
+            return False, result["message"]
+        
+        # 添加到去重缓存
+        for monument in signed_data.get("monuments", []):
+            monument_id = monument.get("id", "")
+            self.dedup_cache.add(monument_id, signature)
+        
+        # 继续广播
+        if broadcast_forward:
+            from_peer = signed_data.get("from_peer", "")
+            self.broadcaster.broadcast(
+                signed_data,
+                exclude_peers={from_peer, self.identity.peer_id}
+            )
+        
+        return True, f"成功导入 {result['monuments_imported']} 条丰碑"
+    
+    def sync_from_peer(
+        self,
+        peer_id: str,
+        since: Optional[str] = None
+    ) -> Tuple[bool, int]:
+        """
+        从指定节点增量同步。
+        
+        Args:
+            peer_id: 目标节点 ID
+            since:   时间戳（ISO格式），None 表示同步全部
+        
+        Returns:
+            (success, count)
+        """
+        if since is None:
+            since = "1970-01-01T00:00:00Z"
+        
+        success, monuments = self.broadcaster.query_incremental(
+            peer_id, since
+        )
+        
+        if not success:
+            return False, 0
+        
+        count = 0
+        for monument in monuments:
+            signed_data = {
+                "protocol": "monument-exchange-v1",
+                "from_peer": peer_id,
+                "ai_id": monument.get("ai_id", "unknown"),
+                "monuments": [monument],
+                "signature": monument.get("signature", ""),
+                "timestamp": monument.get("timestamp", "")
+            }
+            
+            success, _ = self.on_receive_monument(
+                signed_data,
+                broadcast_forward=False
+            )
+            if success:
+                count += 1
+        
+        return True, count
+
+
+# ─── 全网收敛测试 ──────────────────────────────────────────
+
+def simulate_network_convergence(
+    nodes: List[MonumentSyncManager],
+    initial_monument: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    模拟全网收敛（测试用）。
+    
+    Args:
+        nodes:            节点列表
+        initial_monument: 初始丰碑
+    
+    Returns:
+        收敛统计 {
+            "total_nodes": int,
+            "converged_nodes": int,
+            "convergence_rate": float,
+            "rounds": int
+        }
+    """
+    if not nodes:
+        return {
+            "total_nodes": 0,
+            "converged_nodes": 0,
+            "convergence_rate": 0.0,
+            "rounds": 0
+        }
+    
+    # 第一个节点产生丰碑
+    nodes[0].on_new_monument("test-ai", initial_monument)
+    
+    # 模拟广播传播
+    max_rounds = 10
+    for round_num in range(1, max_rounds + 1):
+        # 检查收敛率
+        converged = sum(
+            1 for node in nodes
+            if len(node.repo.list_all()) > 0
+        )
+        convergence_rate = converged / len(nodes)
+        
+        if convergence_rate == 1.0:
+            return {
+                "total_nodes": len(nodes),
+                "converged_nodes": converged,
+                "convergence_rate": convergence_rate,
+                "rounds": round_num
+            }
+        
+        # 继续传播
+        for node in nodes:
+            for other in nodes:
+                if other is not node:
+                    other.sync_from_peer(
+                        node.identity.peer_id,
+                        since="1970-01-01T00:00:00Z"
+                    )
+    
+    # 未完全收敛
+    converged = sum(
+        1 for node in nodes
+        if len(node.repo.list_all()) > 0
+    )
+    return {
+        "total_nodes": len(nodes),
+        "converged_nodes": converged,
+        "convergence_rate": converged / len(nodes),
+        "rounds": max_rounds
+    }

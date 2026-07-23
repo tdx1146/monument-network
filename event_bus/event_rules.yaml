@@ -1,0 +1,237 @@
+# event_rules.yaml - event consumer rules (v0.6.0 security hardening)
+# Commands use exec+script format. Event data passed via EVENT_DATA env var.
+# No string interpolation into shell commands — eliminates injection risk.
+
+rules:
+
+  - id: "rule-task-complete-audit"
+    description: "task complete OK -> write audit to operation_log"
+    match:
+      event_type: task_complete
+      result: OK
+    action:
+      type: bridge
+      target: operation_log
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "level": "INFO",
+            "actor": "event_consumer",
+            "action": "task_complete_audit",
+            "result": "OK",
+            "detail": "audit for " + str(event.get("trace_id", "unknown")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "operation_log.jsonl"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 1.0
+
+  - id: "rule-task-warn-degrade"
+    description: "low confidence WARN -> degrade log"
+    match:
+      event_type: task_complete
+      result: WARN
+    action:
+      type: escalate
+      target: degrade_log
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "task_complete",
+            "result": "WARN",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "degrade_events.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 0.5
+
+  - id: "rule-milestone-archive"
+    description: "milestone -> archive to milestone_archive.jsonl"
+    match:
+      event_type: milestone
+      result: OK
+    action:
+      type: archive
+      target: milestone_archive
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "milestone",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "milestone_archive.jsonl"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 2.0
+
+  - id: "rule-anomaly-escalate"
+    description: "anomaly FAIL -> alert"
+    match:
+      event_type: anomaly
+      result: FAIL
+    action:
+      type: escalate
+      target: alert_channel
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "anomaly",
+            "result": "FAIL",
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "alerts.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 5.0
+
+  - id: "rule-task-fail-alert"
+    description: "task complete FAIL -> alert"
+    match:
+      event_type: task_complete
+      result: FAIL
+    action:
+      type: escalate
+      target: alert_channel
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "task_complete",
+            "result": "FAIL",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "alerts.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 1.0
+
+  - id: "rule-task-timeout-alert"
+    description: "task TIMEOUT -> alert"
+    match:
+      event_type: task_complete
+      result: TIMEOUT
+    action:
+      type: escalate
+      target: alert_channel
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "task_complete",
+            "result": "TIMEOUT",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "alerts.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 1
+    rate_limit: 1.0
+
+  - id: "rule-milestone-warn"
+    description: "milestone WARN -> degrade log (low confidence candidate)"
+    match:
+      event_type: milestone
+      result: WARN
+    action:
+      type: escalate
+      target: degrade_log
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "milestone",
+            "result": "WARN",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "degrade_events.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 1
+    rate_limit: 2.0
+
+  - id: "rule-anomaly-warn"
+    description: "anomaly WARN -> degrade log"
+    match:
+      event_type: anomaly
+      result: WARN
+    action:
+      type: escalate
+      target: degrade_log
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "anomaly",
+            "result": "WARN",
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "degrade_events.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 1
+    rate_limit: 5.0
+
+  - id: "rule-milestone-fail-alert"
+    description: "milestone FAIL -> alert"
+    match:
+      event_type: milestone
+      result: FAIL
+    action:
+      type: escalate
+      target: alert_channel
+      exec: "python"
+      script: |
+        import json, os, datetime
+        event = json.loads(os.environ.get("EVENT_DATA", "{}"))
+        data_dir = os.environ.get("DATA_DIR", ".")
+        entry = {
+            "t": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
+            "event_type": "milestone",
+            "result": "FAIL",
+            "producer": str(event.get("producer", "unknown")),
+            "detail": str(event.get("detail", "")),
+            "trace_id": str(event.get("trace_id", "unknown")),
+        }
+        with open(os.path.join(data_dir, "alerts.log"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    max_retries: 2
+    rate_limit: 2.0

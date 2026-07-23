@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+"""
+本地积分账本测试
+
+测试覆盖（ARCHITECTURE.md §8 步骤 4 要求）：
+1. 积分配置正确导入
+2. 玄鉴评分规则（高/中/低置信度）
+3. 目的树符合度规则（符合/偏离）
+4. 账户初始化 & 积分增加/减少
+5. 历史查询 & 排行榜
+6. 边界情况（置信度边界值、小数点精度）
+"""
+
+import sys
+from pathlib import Path
+
+# 确保 code/ 在 sys.path 中
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from config import (
+    SCORE_XUANJIAN_HIGH,
+    SCORE_XUANJIAN_MID,
+    SCORE_XUANJIAN_LOW,
+    SCORE_GOAL_TREE_ALIGN,
+    SCORE_GOAL_TREE_DIVERGE,
+    SCORE_DECAY_RATE,
+    SCORE_DECIMAL_PRECISION,
+)
+from core.local_score import LocalScoreBook, ScoreSource
+from db.score_repo import ScoreRepository
+from db.database import init_db, close_db, get_connection
+
+
+errors = []
+
+
+def check(name: str, cond: bool, detail: str = "") -> None:
+    if not cond:
+        errors.append(f"FAIL: {name} — {detail}")
+        print(f"  ✗ {name}")
+    else:
+        print(f"  ✓ {name}")
+
+
+# ==============================================================
+# 测试辅助
+# ==============================================================
+
+def _ensure_individual_monument(ai_id: str):
+    """积分表有外键指向 individual_monuments，需要先插入一条个体丰碑记录。"""
+    conn = get_connection()
+    conn.execute(
+        "INSERT OR IGNORE INTO individual_monuments (ai_id, data_json) VALUES (?, ?)",
+        (ai_id, '{"test": true}'),
+    )
+    conn.commit()
+
+
+# ==============================================================
+# 0. 配置检查
+# ==============================================================
+
+print("\n=== Config Check ===")
+
+check("SCORE_XUANJIAN_HIGH == 10", SCORE_XUANJIAN_HIGH == 10)
+check("SCORE_XUANJIAN_MID == 5", SCORE_XUANJIAN_MID == 5)
+check("SCORE_XUANJIAN_LOW == 0", SCORE_XUANJIAN_LOW == 0)
+check("SCORE_GOAL_TREE_ALIGN == 3", SCORE_GOAL_TREE_ALIGN == 3)
+check("SCORE_GOAL_TREE_DIVERGE == -5", SCORE_GOAL_TREE_DIVERGE == -5)
+check("SCORE_DECIMAL_PRECISION == 4", SCORE_DECIMAL_PRECISION == 4)
+
+
+# ==============================================================
+# 1. 初始化
+# ==============================================================
+
+print("\n=== Initialize ===")
+
+init_db()
+repo = ScoreRepository()
+repo.create_table()
+score_book = LocalScoreBook(repo)
+
+_ensure_individual_monument("test-score-1")
+account = score_book.get_score("test-score-1")
+check("get_score returns ai_id", account["ai_id"] == "test-score-1")
+check("get_score initial balance 0.0", account["local_balance"] == 0.0)
+check("get_score history empty", len(account["history"]) == 0)
+
+
+# ==============================================================
+# 2. 玄鉴评分 — 高置信度 (>= 0.8) → +10 分
+# ==============================================================
+
+print("\n=== XuanJian Score: High Confidence ===")
+
+tx = score_book.add_xuanjian_score("test-score-1", confidence=0.85)
+check("high conf: delta == 10", tx.delta == 10.0, f"got {tx.delta}")
+check("high conf: source == XUANJIAN", tx.source == ScoreSource.XUANJIAN)
+check("high conf: balance_after == 10", tx.balance_after == 10.0, f"got {tx.balance_after}")
+check("high conf: reason not empty", len(tx.reason) > 0)
+check("high conf: transaction_id non-empty", len(tx.transaction_id) > 0)
+
+
+# ==============================================================
+# 3. 玄鉴评分 — 中等置信度 (0.5 ~ 0.8) → +5 分
+# ==============================================================
+
+print("\n=== XuanJian Score: Mid Confidence ===")
+
+tx2 = score_book.add_xuanjian_score("test-score-1", confidence=0.65)
+check("mid conf: delta == 5", tx2.delta == 5.0, f"got {tx2.delta}")
+check("mid conf: balance_after == 15", tx2.balance_after == 15.0, f"got {tx2.balance_after}")
+
+# 边界：刚好 0.8
+tx_boundary_high = score_book.add_xuanjian_score("test-score-1", confidence=0.8)
+check("boundary high: delta == 10", tx_boundary_high.delta == 10.0, f"got {tx_boundary_high.delta}")
+
+# 边界：刚好 0.5
+tx_boundary_mid = score_book.add_xuanjian_score("test-score-1", confidence=0.5)
+check("boundary mid: delta == 5", tx_boundary_mid.delta == 5.0, f"got {tx_boundary_mid.delta}")
+
+
+# ==============================================================
+# 4. 玄鉴评分 — 低置信度 (< 0.5) → +0 分
+# ==============================================================
+
+print("\n=== XuanJian Score: Low Confidence ===")
+
+tx3 = score_book.add_xuanjian_score("test-score-1", confidence=0.25)
+check("low conf: delta == 0", tx3.delta == 0.0, f"got {tx3.delta}")
+
+# 最低边界：0.0
+tx4 = score_book.add_xuanjian_score("test-score-1", confidence=0.0)
+check("low conf 0.0: delta == 0", tx4.delta == 0.0, f"got {tx4.delta}")
+
+# 非常高：1.0
+tx5 = score_book.add_xuanjian_score("test-score-1", confidence=1.0)
+check("conf 1.0: delta == 10", tx5.delta == 10.0, f"got {tx5.delta}")
+
+
+# ==============================================================
+# 5. 目的树符合度 — 符合方向 → +3 分
+# ==============================================================
+
+print("\n=== Goal Tree Score: Aligned ===")
+
+tx6 = score_book.add_goal_tree_score("test-score-1", is_aligned=True)
+check("goal tree align: delta == 3", tx6.delta == 3.0, f"got {tx6.delta}")
+check("goal tree align: source == GOAL_TREE", tx6.source == ScoreSource.GOAL_TREE)
+
+
+# ==============================================================
+# 6. 目的树符合度 — 偏离方向 → -5 分
+# ==============================================================
+
+print("\n=== Goal Tree Score: Diverge ===")
+
+tx7 = score_book.add_goal_tree_score("test-score-1", is_aligned=False)
+check("goal tree diverge: delta == -5", tx7.delta == -5.0, f"got {tx7.delta}")
+check("goal tree diverge: source == GOAL_TREE", tx7.source == ScoreSource.GOAL_TREE)
+
+# 验证最终余额（10+5+10+5+0+0+10+3-5 = 38）
+final_account = score_book.get_score("test-score-1")
+expected_balance = 10.0 + 5.0 + 10.0 + 5.0 + 0.0 + 0.0 + 10.0 + 3.0 + (-5.0)
+check(
+    "final balance expected 38.0",
+    abs(final_account["local_balance"] - expected_balance) < 0.001,
+    f"expected {expected_balance}, got {final_account['local_balance']}",
+)
+
+
+# ==============================================================
+# 7. 历史查询
+# ==============================================================
+
+print("\n=== History Query ===")
+
+history = score_book.get_history("test-score-1", limit=100)
+check("history has 9 transactions", len(history) == 9, f"got {len(history)}")
+
+# 检查历史排序：最新的在最前
+check("history[0] newest (diverge -5)", history[0]["delta"] == -5.0, f"got {history[0]['delta']}")
+check("history[-1] oldest (high conf +10)", history[-1]["delta"] == 10.0, f"got {history[-1]['delta']}")
+
+# 检查每条历史记录都有完整字段
+for i, h in enumerate(history):
+    check(f"history[{i}]: has transaction_id", "transaction_id" in h)
+    check(f"history[{i}]: has ai_id", h["ai_id"] == "test-score-1")
+    check(f"history[{i}]: has source", "source" in h)
+    check(f"history[{i}]: has reason", "reason" in h)
+    check(f"history[{i}]: has timestamp", "timestamp" in h)
+    check(f"history[{i}]: has balance_after", "balance_after" in h)
+
+
+# ==============================================================
+# 8. 排行榜
+# ==============================================================
+
+print("\n=== Leaderboard ===")
+
+_ensure_individual_monument("test-score-2")
+_ensure_individual_monument("test-score-3")
+
+# 给 test-score-2 加 5 分
+score_book.add_xuanjian_score("test-score-2", confidence=0.65)
+# 给 test-score-3 加 20 分
+score_book.add_xuanjian_score("test-score-3", confidence=0.9)
+score_book.add_xuanjian_score("test-score-3", confidence=0.9)
+
+leaderboard = score_book.get_leaderboard(top_n=5)
+check("leaderboard has 3 entries", len(leaderboard) >= 3, f"got {len(leaderboard)}")
+check("leaderboard[0] is test-score-1 (38)", leaderboard[0]["ai_id"] == "test-score-1",
+      f"got {leaderboard[0]}")
+
+# 1st: test-score-1 → 38 (from all the operations above)
+# 2nd: test-score-3 → 20
+# 3rd: test-score-2 → 5
+check("leaderboard sorted desc",
+      leaderboard[0]["local_balance"] >= leaderboard[1]["local_balance"] >= leaderboard[2]["local_balance"])
+
+
+# ==============================================================
+# 9. 通用积分操作
+# ==============================================================
+
+print("\n=== Generic Score ===")
+
+tx_generic = score_book.add_generic_score(
+    "test-score-1",
+    delta=7.5,
+    source=ScoreSource.REWARD,
+    reason="人工奖励测试",
+)
+check("generic: delta == 7.5", tx_generic.delta == 7.5, f"got {tx_generic.delta}")
+check("generic: source == REWARD", tx_generic.source == ScoreSource.REWARD)
+check("generic: reason preserved", tx_generic.reason == "人工奖励测试")
+
+
+# ==============================================================
+# 10. 边界：负积分不允许
+# ==============================================================
+
+print("\n=== Negative Balance Guard ===")
+
+# 创建一个新 AI 并反复扣分，积分不应为负
+_ensure_individual_monument("test-score-negative")
+for _ in range(3):
+    score_book.add_goal_tree_score("test-score-negative", is_aligned=False)
+neg_account = score_book.get_score("test-score-negative")
+check("no negative balance", neg_account["local_balance"] >= 0.0,
+      f"got {neg_account['local_balance']}")
+
+
+# ==============================================================
+# 11. 边界：置信度范围验证
+# ==============================================================
+
+print("\n=== Confidence Validation ===")
+
+try:
+    score_book.add_xuanjian_score("test-score-1", confidence=-0.1)
+    check("negative confidence raises ValueError", False, "should have raised")
+except ValueError:
+    check("negative confidence raises ValueError", True)
+
+try:
+    score_book.add_xuanjian_score("test-score-1", confidence=1.5)
+    check("over 1.0 confidence raises ValueError", False, "should have raised")
+except ValueError:
+    check("over 1.0 confidence raises ValueError", True)
+
+
+# ==============================================================
+# 12. 新 AI 查询空账户
+# ==============================================================
+
+print("\n=== New AI Empty Account ===")
+
+new_account = score_book.get_score("nonexistent-ai")
+check("new AI: ai_id preserved", new_account["ai_id"] == "nonexistent-ai")
+check("new AI: balance 0.0", new_account["local_balance"] == 0.0)
+check("new AI: history empty", len(new_account["history"]) == 0)
+
+
+# ==============================================================
+# Summary
+# ==============================================================
+
+close_db()
+
+print(f"\n{'='*40}")
+if errors:
+    print(f"FAILURES: {len(errors)}")
+    for e in errors:
+        print(f"  {e}")
+    sys.exit(1)
+else:
+    print("ALL CHECKS PASSED ✓")

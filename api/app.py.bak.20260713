@@ -1,0 +1,147 @@
+"""
+丰碑网络 HTTP API 服务 —— Flask 应用
+
+启动方式：
+    python3 -m api.app          # 独立启动
+    python3 api/app.py          # 同上
+
+端点一览：
+    POST /monument/sync         # 接收丰碑（跨实例同步）
+    GET  /monument/query        # 查询丰碑（支持 since 时间戳过滤）
+    GET  /health                # 健康检查
+    GET  /info                  # 节点信息
+"""
+
+import sys
+import os
+
+# 确保 code/ 目录在 sys.path 中
+_CODE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _CODE_DIR not in sys.path:
+    sys.path.insert(0, _CODE_DIR)
+
+import logging
+from flask import Flask
+from config import API_HOST, API_PORT, LOG_DIR
+
+# 延迟导入，避免循环依赖
+
+def _register_routes(app):
+    from api.monument_routes import register_monument_routes
+    register_monument_routes(app)
+
+
+def create_app() -> Flask:
+    """
+    创建并配置 Flask 应用。
+
+    返回:
+        Flask 应用实例（尚未运行）
+    """
+    app = Flask(__name__)
+
+    # ── 日志配置 ──────────────────────────────────────────
+    os.makedirs(LOG_DIR, exist_ok=True)
+    handler = logging.FileHandler(os.path.join(LOG_DIR, "api.log"), encoding="utf-8")
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ))
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)
+
+    # ── 路由注册 ──────────────────────────────────────────
+    _register_routes(app)
+
+    @app.route("/health")
+    def health():
+        return {"status": "ok", "service": "monument-network"}
+
+    @app.route("/info")
+    def info():
+        """返回本节点基本信息。"""
+        from core.p2p_network import P2PIdentity
+        # 尝试加载持久化身份，或创建临时身份
+        try:
+            ident_path = _get_identity_path()
+            if os.path.exists(ident_path):
+                with open(ident_path, "rb") as f:
+                    priv_key = f.read()
+                identity = P2PIdentity(private_key=priv_key)
+            else:
+                identity = P2PIdentity()
+        except Exception:
+            identity = P2PIdentity()
+
+        return {
+            "peer_id": identity.peer_id,
+            "protocol": "monument-exchange-v1",
+            "node": API_HOST,
+            "port": API_PORT,
+        }
+
+    return app
+
+
+def _get_identity_path() -> str:
+    """获取身份密钥文件路径。"""
+    from config import DATA_DIR
+    return os.path.join(DATA_DIR, "p2p_identity.key")
+
+
+def _ensure_identity() -> str:
+    """
+    确保节点有持久化身份。如果不存在则创建新密钥对。
+
+    返回:
+        peer_id 字符串
+    """
+    from core.p2p_network import P2PIdentity
+
+    ident_path = _get_identity_path()
+    if os.path.exists(ident_path):
+        with open(ident_path, "rb") as f:
+            priv_key = f.read()
+        identity = P2PIdentity(private_key=priv_key)
+    else:
+        identity = P2PIdentity()
+        os.makedirs(os.path.dirname(ident_path), exist_ok=True)
+        with open(ident_path, "wb") as f:
+            f.write(identity.private_key_bytes)
+        os.chmod(ident_path, 0o600)  # P0-2: 收紧密钥文件权限，防止其他进程读取私钥
+        import logging
+        logging.getLogger("monument-api").info("生成新 P2P 身份: peer_id=%s", identity.peer_id)
+
+    return identity
+
+
+# ─── 独立启动入口 ──────────────────────────────────────────
+
+def main():
+    """独立启动入口。"""
+    app = create_app()
+    
+    # 获取节点身份（延迟初始化，触发身份文件创建）
+    from api.monument_routes import _get_identity
+    identity = _get_identity()
+    
+    app.logger.info(
+        "丰碑网络节点启动: peer_id=%s  http://%s:%d",
+        identity.peer_id,
+        API_HOST,
+        API_PORT,
+    )
+    print(f"\n  ✅ 丰碑网络节点已启动")
+    print(f"  🆔  PeerID:  {identity.peer_id}")
+    print(f"  🌐  地址:    http://{API_HOST}:{API_PORT}")
+    print(f"  📋  端点:")
+    print(f"       POST /monument/sync    (接收丰碑)")
+    print(f"       GET  /monument/query   (查询丰碑, 参数?since=<ISO时间>)")
+    print(f"       GET  /health           (健康检查)")
+    print(f"       GET  /info             (节点信息)")
+    print()
+    app.run(host=API_HOST, port=API_PORT, debug=False)
+
+
+if __name__ == "__main__":
+    main()

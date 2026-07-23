@@ -1,0 +1,30 @@
+# tasks.yaml - scheduled tasks for monument network
+# v0.5.0 - real task config (replaces hardcoded empty list)
+
+scheduler:
+  tick_interval: 30
+
+tasks:
+  - id: health_check
+    schedule: "*/10 * * * *"
+    command: "python3 {CODE_DIR}/core/health_checker.py"
+    timeout: 60
+    description: "Monument network health check"
+
+  - id: db_maintenance
+    schedule: "0 3 * * *"
+    command: "python3 {CODE_DIR}/db/database.py"
+    timeout: 120
+    description: "Daily DB maintenance - run migrations and cleanup"
+
+  - id: freeze_check
+    schedule: "0 */6 * * *"
+    command: "python3 {CODE_DIR}/core/freeze_detector.py"
+    timeout: 60
+    description: "Check for frozen AI instances every 6 hours"
+
+  - id: periodic_sync
+    schedule: "*/30 * * * *"
+    command: "python3 {CODE_DIR}/core/periodic_syncer.py"
+    timeout: 120
+    description: "Periodic monument sync with known peers"
